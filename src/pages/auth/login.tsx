@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { setCookie } from "nookies";
 import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
@@ -21,6 +22,9 @@ function LoginPage() {
       },
       onSuccess: async (x) => {
         console.log("DATA", x);
+        setCookie(null, "userId", x.id, {
+          maxAge: 30 * 24 * 60 * 60,
+        });
         localStorage.setItem("user", JSON.stringify(x.id));
         router.push("/");
       },

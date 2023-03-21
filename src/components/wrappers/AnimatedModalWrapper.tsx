@@ -35,7 +35,7 @@ function AnimatedModalWrapper({
     left: "50%",
     transform: "translate(-50%,-50%)",
     backgroundColor: "#fff",
-    width: width ? width : "93%",
+    minWidth: width ? width : "93%",
     height: height ? height : "98%",
     borderRadius: "10px",
     padding: "10px",
@@ -72,13 +72,14 @@ function AnimatedModalWrapper({
               variants={modal}
               initial="hidden"
               animate="visible"
+              className={`lg:w-[${width}] w-[80%] `}
               style={{
                 position: "fixed",
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%,-50%)",
                 backgroundColor: "#fff",
-                width: width ? width : "93%",
+                minWidth: width ? width : "93%",
                 height: height ? height : "98%",
                 borderRadius: "10px",
                 padding: "10px",

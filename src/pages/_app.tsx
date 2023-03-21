@@ -6,6 +6,7 @@ import "~/styles/globals.css";
 
 import { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
+import { parseCookies } from "nookies";
 type User = {
   name: string;
   email: string;
@@ -16,21 +17,25 @@ type User = {
 };
 const MyApp: AppType = ({ Component, pageProps }) => {
   const router = useRouter();
-  var storedId: undefined | string;
-  if (typeof document != "undefined")
-    storedId = JSON.parse(localStorage.getItem("user"));
+  // if (typeof document != "undefined") {
+  //   // var { userId } = parseCookies(null);
+  //   // console.log("COOKIE", userId);
+  //   userId = JSON.parse(localStorage.getItem("user"));
+  // }
+  var { userId } = parseCookies(null);
+  console.log("COOKIE", userId);
   const { data: user, refetch: getUser } = api.users.getUser.useQuery(
-    storedId,
+    userId ? userId : "",
     {
       enabled: false,
     }
   );
   useEffect(() => {
-    if (!storedId) router.push("/auth/login");
+    if (!userId) router.push("/auth/login");
     else {
       getUser();
     }
-  }, [storedId]);
+  }, [userId]);
   console.log("USER IN APP", user);
   return (
     <>
