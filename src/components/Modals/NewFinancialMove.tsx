@@ -85,10 +85,13 @@ function NewFinancialMove({
     },
   });
   const { mutate: createMethod } = api.finances.createMethod.useMutation({
-    onSettled: async (response) => {
+    onSuccess(data, variables, context) {
+      console.log("PASSEI AQUI", data, variables, context);
+      if (data) setUserInfo(data);
       if (newMethodVisible) setNewMethodVisible(false);
-
-      trpc.users.getUser.refetch();
+      toast.success("Método de pagamento criado !");
+      trpc.users.getUser.invalidate();
+      return;
     },
   });
 
@@ -127,7 +130,7 @@ function NewFinancialMove({
   }
   async function handleCreateMethod(name: string) {
     if (user?.id) {
-      await createMethod({ name: name, userId: user.id });
+      createMethod({ name: name, userId: user.id });
       return;
     }
   }

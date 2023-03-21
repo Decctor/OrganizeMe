@@ -5,7 +5,6 @@ import { MdOutlineLogout } from "react-icons/md";
 function Header() {
   const router = useRouter();
   function logout() {
-    localStorage.removeItem("user");
     router.push("/auth/login");
   }
   return (

@@ -25,12 +25,12 @@ export const usersRouter = createTRPCRouter({
   login: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string() }))
     .query(async ({ ctx, input }) => {
-      let correspondingUserInDb = await ctx.prisma.user.findFirst({
+      const correspondingUserInDb = await ctx.prisma.user.findFirst({
         where: {
           email: input.email,
         },
         select: {
-          id:true,
+          id: true,
           name: true,
           email: true,
           categories: true,
@@ -52,13 +52,13 @@ export const usersRouter = createTRPCRouter({
           message: "Senha incorreta.",
         });
       }
-      let returninObj = { ...correspondingUserInDb, password: null };
+      const returninObj = { ...correspondingUserInDb, password: null };
       return returninObj;
     }),
   getUser: publicProcedure
     .input(z.string())
     .query(async ({ ctx, input: id }) => {
-      let user = await ctx.prisma.user.findFirst({
+      const user = await ctx.prisma.user.findFirst({
         where: {
           id: id,
         },

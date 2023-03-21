@@ -32,7 +32,7 @@ export const financesRouter = createTRPCRouter({
   getExpenses: publicProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
-      let expenses = await ctx.prisma.expenses.findMany({
+      const expenses = await ctx.prisma.expenses.findMany({
         where: {
           userId: input,
         },
@@ -47,7 +47,7 @@ export const financesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      let response = await ctx.prisma.categories.create({
+      await ctx.prisma.categories.create({
         data: {
           name: input.name,
           user: {
@@ -57,7 +57,7 @@ export const financesRouter = createTRPCRouter({
           },
         },
       });
-      let user = await ctx.prisma.user.findFirst({
+      const user = await ctx.prisma.user.findFirst({
         where: {
           id: input.userId,
         },
@@ -91,5 +91,20 @@ export const financesRouter = createTRPCRouter({
           },
         },
       });
+      const user = await ctx.prisma.user.findFirst({
+        where: {
+          id: input.userId,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          categories: true,
+          methods: true,
+          expenses: true,
+        },
+      });
+      console.log("RESPONSE", user);
+      return user;
     }),
 });
