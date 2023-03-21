@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
+import { toast } from "react-hot-toast";
 import { MdOutlineLogout } from "react-icons/md";
-function Header() {
-  const router = useRouter();
-  function logout() {
-    router.push("/auth/login");
+async function Header() {
+  const router = await useRouter();
+  async function logout() {
+    try {
+      await router.push("/auth/login");
+    } catch (error) {
+      toast.error("Oops, error.");
+    }
   }
   return (
     <div className="sticky top-0 h-[70px] w-full border-b border-gray-200">
