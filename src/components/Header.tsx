@@ -3,8 +3,8 @@ import { useRouter } from "next/router";
 import React from "react";
 import { toast } from "react-hot-toast";
 import { MdOutlineLogout } from "react-icons/md";
-async function Header() {
-  const router = await useRouter();
+function Header() {
+  const router = useRouter();
   async function logout() {
     try {
       await router.push("/auth/login");
