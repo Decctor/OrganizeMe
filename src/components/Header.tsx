@@ -8,6 +8,7 @@ function Header() {
   async function logout() {
     try {
       await router.push("/auth/login");
+      return;
     } catch (error) {
       toast.error("Oops, error.");
     }
