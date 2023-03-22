@@ -46,7 +46,10 @@ function FinancesMainPage({ user }: IUserProps) {
           <h1 className="font-bold text-green-500">GANHOS</h1>
           <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-center">
             {earnings?.map((earning) => (
-              <div className="flex max-h-[100px] w-full flex-col rounded border border-[#2b4e72] p-3 shadow-lg lg:w-[450px]">
+              <div
+                key={earning.id}
+                className="flex max-h-[100px] w-full flex-col rounded border border-[#2b4e72] p-3 shadow-lg lg:w-[450px]"
+              >
                 <div className="flex items-center justify-between">
                   <h1 className="font-bold text-[#2790b0]">
                     {earning.description}
@@ -68,7 +71,10 @@ function FinancesMainPage({ user }: IUserProps) {
           <h1 className="font-bold text-red-500">GASTOS</h1>
           <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-center">
             {expenses?.map((expense) => (
-              <div className="flex max-h-[100px] w-full flex-col rounded border border-[#2b4e72] p-3 shadow-lg lg:w-[450px]">
+              <div
+                key={expense.id}
+                className="flex max-h-[100px] w-full flex-col rounded border border-[#2b4e72] p-3 shadow-lg lg:w-[450px]"
+              >
                 <div className="flex items-center justify-between">
                   <h1 className="font-bold text-[#2790b0]">
                     {expense.description}
