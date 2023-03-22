@@ -38,6 +38,7 @@ model User  {
     categories  Categories[]
     methods Methods[]
     expenses Expenses[]
+    earnings Earnings[]
     budgets Budgets[]
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -50,6 +51,14 @@ model Expenses {
     value Float 
     purchaseDate DateTime @default(now())
     installments Int?
+    user User @relation(fields: [userId], references: [id])
+    userId String
+}
+model Earnings {
+    id String @id @default(cuid())
+    description String 
+    value Float
+    date DateTime @default(now())
     user User @relation(fields: [userId], references: [id])
     userId String
 }

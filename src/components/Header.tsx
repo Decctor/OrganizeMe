@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { destroyCookie } from "nookies";
 import React from "react";
 import { toast } from "react-hot-toast";
 import { MdOutlineLogout } from "react-icons/md";
@@ -26,12 +27,13 @@ function Header() {
           <button
             onClick={() => {
               void (async () => {
+                destroyCookie(null, "userId");
                 const x = await router.push("/auth/login");
                 console.log("UEPA");
                 return;
               })();
             }}
-            className="text-[#00c16c]"
+            className="text-[25px] text-[#00c16c]"
           >
             <MdOutlineLogout />
           </button>

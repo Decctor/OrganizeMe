@@ -15,6 +15,12 @@ function FinancesMainPage({ user }: IUserProps) {
     isLoading,
     status,
   } = api.finances.getExpenses.useQuery(user ? user.id : "");
+  const {
+    data: earnings,
+    isFetching: areEarningsFetching,
+    isLoading: areEarningsLoading,
+    status: earningAPIStatus,
+  } = api.finances.getEarnings.useQuery(user ? user.id : "");
   const { mutate } = api.users.createUser.useMutation({
     onMutate: async (x) => {
       toast.success("Usuário adicionado!");
@@ -25,7 +31,7 @@ function FinancesMainPage({ user }: IUserProps) {
   // .color3 { #94ba65 };
   // .color4 { #2790b0 };
   // .color5 { #2b4e72 };
-  console.log(expenses);
+  console.log(earnings);
   console.log("IN FINANCES", user);
   return (
     <FullScreenWrapper>
@@ -36,25 +42,52 @@ function FinancesMainPage({ user }: IUserProps) {
             CONTROLE DE FINANÇAS
           </h1>
         </div>
-        <div className="flex w-full grow flex-col gap-2 py-2">
-          {expenses?.map((expense) => (
-            <div className="flex w-full flex-col rounded border border-[#2b4e72] p-3 shadow-lg">
-              <div className="flex items-center justify-between">
-                <h1 className="font-bold text-[#2790b0]">
-                  {expense.description}
-                </h1>
-                <h1>R$ {expense.value.toFixed(2).replace(".", ",")}</h1>
+        <div className="flex w-full flex-col  py-2 ">
+          <h1 className="font-bold text-green-500">GANHOS</h1>
+          <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-center">
+            {earnings?.map((earning) => (
+              <div className="flex max-h-[100px] w-full flex-col rounded border border-[#2b4e72] p-3 shadow-lg lg:w-[450px]">
+                <div className="flex items-center justify-between">
+                  <h1 className="font-bold text-[#2790b0]">
+                    {earning.description}
+                  </h1>
+                  <h1 className="font-bold text-green-500">
+                    + R$ {earning.value.toFixed(2).replace(".", ",")}
+                  </h1>
+                </div>
+                <div className="flex items-center justify-end text-xs">
+                  <h1 className="text-[##4e4d4a]">
+                    {new Date(earning.date).toLocaleString()}
+                  </h1>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <h1 className="font-semibold text-[#94ba65]">
-                  {expense.category}
-                </h1>
-                <h1 className="text-[##4e4d4a]">
-                  {new Date(expense.purchaseDate).toLocaleString()}
-                </h1>
+            ))}
+          </div>
+        </div>
+        <div className="flex w-full flex-col  py-2 ">
+          <h1 className="font-bold text-red-500">GASTOS</h1>
+          <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-center">
+            {expenses?.map((expense) => (
+              <div className="flex max-h-[100px] w-full flex-col rounded border border-[#2b4e72] p-3 shadow-lg lg:w-[450px]">
+                <div className="flex items-center justify-between">
+                  <h1 className="font-bold text-[#2790b0]">
+                    {expense.description}
+                  </h1>
+                  <h1 className="font-bold text-red-500">
+                    - R$ {expense.value.toFixed(2).replace(".", ",")}
+                  </h1>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <h1 className="font-semibold text-[#94ba65]">
+                    {expense.category}
+                  </h1>
+                  <h1 className="text-[##4e4d4a]">
+                    {new Date(expense.purchaseDate).toLocaleString()}
+                  </h1>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div

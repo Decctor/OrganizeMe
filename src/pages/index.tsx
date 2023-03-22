@@ -17,15 +17,14 @@ const Home: NextPage = ({ user }: IUserProps) => {
       </Head>
       <FullScreenWrapper>
         <Header />
-        <div className="flex grow items-center justify-center gap-3 p-6">
-          <div className="flex h-[500px] w-[40%] items-center justify-center border border-gray-200 shadow-sm">
+        <div className="flex grow flex-col items-center justify-center gap-3 p-6 lg:flex-row">
+          <div className="flex h-[500px] w-full items-center justify-center border border-gray-200 shadow-sm lg:w-1/3">
             <Link href={"/finances"}>CONTROLE FINANCEIRO</Link>
           </div>
-
-          <div className="flex h-[500px] w-[40%] items-center justify-center border border-gray-200 shadow-sm">
+          <div className="flex h-[500px] w-full items-center justify-center border border-gray-200 shadow-sm lg:w-1/3">
             HÁBITOS E METAS
           </div>
-          <div className="flex h-[500px] w-[40%] items-center justify-center border border-gray-200 shadow-sm">
+          <div className="flex h-[500px] w-full items-center justify-center border border-gray-200 shadow-sm lg:w-1/3">
             ATIVIDADES A FAZER
           </div>
         </div>

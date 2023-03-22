@@ -10,6 +10,7 @@ export const financesRouter = createTRPCRouter({
         category: z.string(),
         method: z.string(),
         value: z.number(),
+        purchaseDate: z.date(),
         userId: z.string(),
       })
     )
@@ -21,6 +22,7 @@ export const financesRouter = createTRPCRouter({
           category: input.category,
           method: input.method,
           value: input.value,
+          purchaseDate: input.purchaseDate,
           user: {
             connect: {
               id: input.userId,
@@ -38,6 +40,39 @@ export const financesRouter = createTRPCRouter({
         },
       });
       return expenses;
+    }),
+  createEarning: publicProcedure
+    .input(
+      z.object({
+        description: z.string(),
+        value: z.number(),
+        date: z.date(),
+        userId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.prisma.earnings.create({
+        data: {
+          description: input.description,
+          value: input.value,
+          date: input.date,
+          user: {
+            connect: {
+              id: input.userId,
+            },
+          },
+        },
+      });
+    }),
+  getEarnings: publicProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const earnings = await ctx.prisma.earnings.findMany({
+        where: {
+          userId: input,
+        },
+      });
+      return earnings;
     }),
   createCategory: publicProcedure
     .input(

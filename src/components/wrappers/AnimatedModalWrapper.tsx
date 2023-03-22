@@ -72,19 +72,19 @@ function AnimatedModalWrapper({
               variants={modal}
               initial="hidden"
               animate="visible"
-              className={`lg:w-[${width}] w-[80%] `}
-              style={{
-                position: "fixed",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%,-50%)",
-                backgroundColor: "#fff",
-                minWidth: width ? width : "93%",
-                height: height ? height : "98%",
-                borderRadius: "10px",
-                padding: "10px",
-                zIndex: 1000,
-              }}
+              className={`fixed top-[50%] left-[50%] z-[1000] h-[${height}] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:w-[${width}]`}
+              // style={{
+              //   position: "fixed",
+              //   top: "50%",
+              //   left: "50%",
+              //   transform: "translate(-50%,-50%)",
+              //   backgroundColor: "#fff",
+              //   minWidth: width ? width : "93%",
+              //   height: height ? height : "98%",
+              //   borderRadius: "10px",
+              //   padding: "10px",
+              //   zIndex: 1000,
+              // }}
             >
               {children}
             </motion.div>
