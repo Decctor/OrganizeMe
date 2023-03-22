@@ -13,7 +13,7 @@ import NewEarning from "../utils/NewEarning";
 
 type NewFinancialMoveProps = {
   modalIsOpen: boolean;
-  closeModal: any;
+  closeModal: () => boolean;
 };
 type ExpenseType = {
   description: string;
