@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -40,6 +41,20 @@ export const financesRouter = createTRPCRouter({
         },
       });
       return expenses;
+    }),
+  deleteExpense: publicProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await ctx.prisma.expenses.delete({
+          where: {
+            id: input,
+          },
+        });
+        return "Gasto excluído!";
+      } catch (error) {
+        return new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
     }),
   createEarning: publicProcedure
     .input(

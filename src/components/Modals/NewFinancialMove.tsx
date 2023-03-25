@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { VscChromeClose } from "react-icons/vsc";
 import AnimatedModalWrapper from "../wrappers/AnimatedModalWrapper";
 import { toast } from "react-hot-toast";
-import { z } from "zod";
+import { boolean, z } from "zod";
 import { IoMdAddCircle } from "react-icons/io";
 import { api } from "~/utils/api";
 import { IUserProps } from "~/utils/types";
@@ -13,7 +13,7 @@ import NewEarning from "../utils/NewEarning";
 
 type NewFinancialMoveProps = {
   modalIsOpen: boolean;
-  closeModal: () => boolean;
+  closeModal: () => void;
 };
 type ExpenseType = {
   description: string;
@@ -121,7 +121,7 @@ function NewFinancialMove({
           </h1>
           <div className="flex items-center justify-end gap-2">
             <button
-              onClick={() => closeModal()}
+              onClick={(e) => closeModal()}
               className="flex items-center justify-center transition duration-300 ease-in-out hover:scale-125"
             >
               <VscChromeClose style={{ color: "red" }} />
