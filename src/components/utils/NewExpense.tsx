@@ -39,21 +39,26 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
 
   const { mutate: createExpense } = api.finances.createExpense.useMutation({
     onSuccess: async (response) => {
-      trpc.users.getUser.invalidate();
-      trpc.finances.getExpenses.invalidate();
-      setExpenseInfo({
-        description: "",
-        category: "NÃO DEFINIDO",
-        method: "NÃO DEFINIDO",
-        value: 0,
-        purchaseDate: new Date(),
-      });
-      toast.success("Gasto adicionado !");
+      try {
+        await trpc.users.getUser.invalidate();
+        await trpc.finances.getExpenses.invalidate();
+        setExpenseInfo({
+          description: "",
+          category: "NÃO DEFINIDO",
+          method: "NÃO DEFINIDO",
+          value: 0,
+          purchaseDate: new Date(),
+        });
+        toast.success("Gasto adicionado !");
+      } catch (error) {
+        toast.error("Erro na invalidação de queries.");
+      }
     },
   });
   const { mutate: createCategory } = api.finances.createCategory.useMutation({
     onSuccess(data, variables, context) {
       console.log("PASSEI AQUI", data, variables, context);
+
       if (data) setUserInfo(data);
       if (newCategoryVisible) setNewCategoryVisible(false);
       toast.success("Categoria criada !");
@@ -73,7 +78,7 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
   });
 
   async function handleExpenseAdd() {
-    let result = await expenseInput.safeParseAsync(expenseInfo);
+    const result = await expenseInput.safeParseAsync(expenseInfo);
     if (expenseInfo.category == "NÃO DEFINIDO") {
       toast.error("Categoria não pode ser NÃO DEFINIDO");
       return;

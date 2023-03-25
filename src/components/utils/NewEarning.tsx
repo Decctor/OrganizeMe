@@ -26,19 +26,23 @@ function NewEarning({ user }: IUserProps) {
   });
 
   const { mutate: createEarning } = api.finances.createEarning.useMutation({
-    onSuccess(data, variables, context) {
-      trpc.users.getUser.invalidate();
-      trpc.finances.getEarnings.invalidate();
-      setEarningInfo({
-        description: "",
-        value: 0,
-        date: new Date(),
-      });
-      toast.success("Entrada adicionada !");
+    async onSuccess(data, variables, context) {
+      try {
+        await trpc.users.getUser.invalidate();
+        await trpc.finances.getEarnings.invalidate();
+        setEarningInfo({
+          description: "",
+          value: 0,
+          date: new Date(),
+        });
+        toast.success("Entrada adicionada !");
+      } catch (error) {
+        toast.error("Erro na invalidação de queries.");
+      }
     },
   });
   async function handleEarningAdd() {
-    let result = await earningInput.safeParseAsync(earningInfo);
+    const result = await earningInput.safeParseAsync(earningInfo);
     if (result.success === false) {
       toast.error(
         result.error.issues[0]?.message
@@ -102,7 +106,7 @@ function NewEarning({ user }: IUserProps) {
       </div>
       <div className="flex items-center justify-center">
         <button
-          onClick={handleEarningAdd}
+          onClick={async () => await handleEarningAdd()}
           className="rounded border border-[#2b4e72] p-2 text-sm font-bold text-[#2b4e72] duration-300 ease-in-out hover:scale-105 hover:bg-[#2b4e72] hover:text-white"
         >
           ADICIONAR ENTRADA

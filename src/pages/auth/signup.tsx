@@ -32,7 +32,7 @@ function SignUpPage() {
     },
   });
   async function handleSignUp() {
-    let result = await userInput.safeParseAsync(signUpInfo);
+    const result = await userInput.safeParseAsync(signUpInfo);
     if (result.success === false) {
       toast.error(
         result.error.issues[0]?.message
