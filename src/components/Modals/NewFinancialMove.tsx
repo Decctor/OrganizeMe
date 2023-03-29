@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { VscChromeClose } from "react-icons/vsc";
 import AnimatedModalWrapper from "../wrappers/AnimatedModalWrapper";
 import { toast } from "react-hot-toast";
@@ -13,6 +13,7 @@ import NewEarning from "../utils/NewEarning";
 
 type NewFinancialMoveProps = {
   modalIsOpen: boolean;
+  initialMoveType: "ENTRADA" | "SAÍDA";
   closeModal: () => void;
 };
 type ExpenseType = {
@@ -35,13 +36,19 @@ const expenseInput = z.object({
 
 function NewFinancialMove({
   modalIsOpen,
+  initialMoveType,
   closeModal,
   user,
 }: NewFinancialMoveProps & IUserProps) {
-  const [moveType, setMoveType] = useState<"SAÍDA" | "ENTRADA">("SAÍDA");
+  const [moveType, setMoveType] = useState<"ENTRADA" | "SAÍDA">(
+    initialMoveType
+  );
 
+  console.log("MOVE TYPE", moveType, "INITAL MOVE TYPE", initialMoveType);
   const [userInfo, setUserInfo] = useState(user);
-
+  useEffect(() => {
+    setMoveType(initialMoveType);
+  }, [initialMoveType]);
   // Create function from server
   // const { mutate: createExpense } = api.finances.createExpense.useMutation({
   //   onSuccess: async (response) => {
@@ -147,10 +154,10 @@ function NewFinancialMove({
               ENTRADA
             </h1>
           </div>
+          {moveType == "ENTRADA" ? <NewEarning user={userInfo} /> : null}
           {moveType == "SAÍDA" ? (
             <NewExpense user={userInfo} setUserInfo={setUserInfo} />
           ) : null}
-          {moveType == "ENTRADA" ? <NewEarning user={userInfo} /> : null}
         </div>
       </div>
     </AnimatedModalWrapper>
