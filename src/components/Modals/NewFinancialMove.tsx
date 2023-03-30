@@ -16,23 +16,6 @@ type NewFinancialMoveProps = {
   initialMoveType: "ENTRADA" | "SAÍDA";
   closeModal: () => void;
 };
-type ExpenseType = {
-  description: string;
-  category: string;
-  method: string;
-  value: number;
-};
-
-const expenseInput = z.object({
-  description: z
-    .string({ required_error: "Descreva o gasto." })
-    .min(5, { message: "Por favor, descreva o gasto em ao menos 5 letras." }),
-  category: z.string({ required_error: "Preencha um categoria de gasto." }),
-  method: z.string({ required_error: "Preencha o método de pagamento." }),
-  value: z
-    .number({ required_error: "Preencha o valor do gasto." })
-    .min(1, { message: "O valor mínimo do gasto é R$1." }),
-});
 
 function NewFinancialMove({
   modalIsOpen,
