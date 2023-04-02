@@ -4,6 +4,46 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const financesRouter = createTRPCRouter({
+  getUserFinancialBalance: publicProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const currentDate = new Date();
+      try {
+        const expenses = await ctx.prisma.expenses.groupBy({
+          where: {
+            userId: input,
+            paymentDate: { lte: currentDate },
+          },
+          by: ["userId"],
+          _sum: {
+            value: true,
+          },
+        });
+        const earnings = await ctx.prisma.earnings.groupBy({
+          where: {
+            userId: input,
+            date: { lte: currentDate },
+          },
+          by: ["userId"],
+          _sum: {
+            value: true,
+          },
+        });
+        const totalExpenses = expenses[0]?._sum.value
+          ? expenses[0]?._sum.value
+          : 0;
+        const totalEarnings = earnings[0]?._sum.value
+          ? earnings[0]?._sum.value
+          : 0;
+        return totalEarnings - totalExpenses;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
+    }),
   createExpense: publicProcedure
     .input(
       z.object({
@@ -12,35 +52,119 @@ export const financesRouter = createTRPCRouter({
         method: z.string(),
         value: z.number(),
         purchaseDate: z.date(),
+        paymentDate: z.date(),
+        installments: z.number().nullable(),
         userId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log(input);
-      return ctx.prisma.expenses.create({
-        data: {
-          description: input.description,
-          category: input.category,
-          method: input.method,
-          value: input.value,
-          purchaseDate: input.purchaseDate,
-          user: {
-            connect: {
-              id: input.userId,
+      try {
+        await ctx.prisma.expenses.create({
+          data: {
+            description: input.description,
+            category: input.category,
+            method: input.method,
+            value: input.value,
+            purchaseDate: input.purchaseDate,
+            installments: input.installments,
+            paymentDate: input.paymentDate,
+            user: {
+              connect: {
+                id: input.userId,
+              },
             },
           },
-        },
-      });
+        });
+        return "Gasto adicionado com sucesso!";
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
+    }),
+  createManyExpenses: publicProcedure
+    .input(
+      z.array(
+        z.object({
+          description: z.string(),
+          category: z.string(),
+          method: z.string(),
+          value: z.number(),
+          purchaseDate: z.date(),
+          paymentDate: z.date(),
+          installments: z.number(),
+          installmentIdentifier: z.number(),
+          userId: z.string(),
+        })
+      )
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await ctx.prisma.expenses.createMany({
+          data: input,
+        });
+        return "Gasto adicionado com sucesso!";
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
     }),
   getExpenses: publicProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
-      const expenses = await ctx.prisma.expenses.findMany({
-        where: {
-          userId: input,
-        },
-      });
-      return expenses;
+      try {
+        const expenses = await ctx.prisma.expenses.findMany({
+          where: {
+            userId: input,
+          },
+        });
+        return expenses;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
+    }),
+  getMonthExpenses: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        date: z.date(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { date } = input;
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      try {
+        const firstFisterItems = await ctx.prisma.expenses.findMany({
+          where: {
+            userId: input.id,
+            AND: [
+              {
+                paymentDate: { gte: firstDay },
+              },
+              {
+                paymentDate: { lte: lastDay },
+              },
+            ],
+          },
+        });
+        return firstFisterItems;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
     }),
   deleteExpense: publicProcedure
     .input(z.string())
@@ -53,7 +177,11 @@ export const financesRouter = createTRPCRouter({
         });
         return "Gasto excluído!";
       } catch (error) {
-        return new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
       }
     }),
   createEarning: publicProcedure
@@ -66,18 +194,27 @@ export const financesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await ctx.prisma.earnings.create({
-        data: {
-          description: input.description,
-          value: input.value,
-          date: input.date,
-          user: {
-            connect: {
-              id: input.userId,
+      try {
+        await ctx.prisma.earnings.create({
+          data: {
+            description: input.description,
+            value: input.value,
+            date: input.date,
+            user: {
+              connect: {
+                id: input.userId,
+              },
             },
           },
-        },
-      });
+        });
+        return "Ganho adicionado com sucesso!";
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
     }),
   getEarnings: publicProcedure
     .input(z.string())
@@ -89,6 +226,51 @@ export const financesRouter = createTRPCRouter({
       });
       return earnings;
     }),
+  getMonthEarnings: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        date: z.date(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { date } = input;
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      console.log(firstDay, lastDay);
+      const firstFisterItems = await ctx.prisma.earnings.findMany({
+        where: {
+          userId: input.id,
+          AND: [
+            {
+              date: { gte: firstDay },
+            },
+            {
+              date: { lte: lastDay },
+            },
+          ],
+        },
+      });
+      return firstFisterItems;
+    }),
+  deleteEarning: publicProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await ctx.prisma.earnings.delete({
+          where: {
+            id: input,
+          },
+        });
+        return "Ganho excluído!";
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
+    }),
   createCategory: publicProcedure
     .input(
       z.object({
@@ -97,31 +279,39 @@ export const financesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.prisma.categories.create({
-        data: {
-          name: input.name,
-          user: {
-            connect: {
-              id: input.userId,
+      try {
+        await ctx.prisma.categories.create({
+          data: {
+            name: input.name,
+            user: {
+              connect: {
+                id: input.userId,
+              },
             },
           },
-        },
-      });
-      const user = await ctx.prisma.user.findFirst({
-        where: {
-          id: input.userId,
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          categories: true,
-          methods: true,
-          expenses: true,
-        },
-      });
-      console.log("RESPONSE", user);
-      return user;
+        });
+        const user = await ctx.prisma.user.findFirst({
+          where: {
+            id: input.userId,
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            categories: true,
+            methods: true,
+            expenses: true,
+          },
+        });
+        console.log("RESPONSE", user);
+        return user;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
     }),
   createMethod: publicProcedure
     .input(
@@ -131,30 +321,38 @@ export const financesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.prisma.methods.create({
-        data: {
-          name: input.name,
-          user: {
-            connect: {
-              id: input.userId,
+      try {
+        await ctx.prisma.methods.create({
+          data: {
+            name: input.name,
+            user: {
+              connect: {
+                id: input.userId,
+              },
             },
           },
-        },
-      });
-      const user = await ctx.prisma.user.findFirst({
-        where: {
-          id: input.userId,
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          categories: true,
-          methods: true,
-          expenses: true,
-        },
-      });
-      console.log("RESPONSE", user);
-      return user;
+        });
+        const user = await ctx.prisma.user.findFirst({
+          where: {
+            id: input.userId,
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            categories: true,
+            methods: true,
+            expenses: true,
+          },
+        });
+        console.log("RESPONSE", user);
+        return user;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
     }),
 });

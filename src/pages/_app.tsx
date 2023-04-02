@@ -24,22 +24,25 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   // }
   var { userId } = parseCookies(null);
   console.log("COOKIE", userId);
-  const { data: user, refetch: getUser } = api.users.getUser.useQuery(
-    userId ? userId : "",
-    {
-      enabled: false,
-    }
-  );
+  // const { data: user, refetch: getUser } = api.users.getUser.useQuery(
+  //   userId ? userId : "",
+  //   {
+  //     enabled: false,
+  //   }
+  // );
   useEffect(() => {
     if (!userId) router.push("/auth/login");
-    else {
-      getUser();
-    }
+    // else {
+    //   getUser();
+    // }
   }, [userId]);
-  console.log("USER IN APP", user);
   return (
     <>
-      <Component {...pageProps} user={user} /> <Toaster />
+      <Component
+        {...pageProps}
+        //  user={user}
+      />
+      <Toaster />
     </>
   );
 };

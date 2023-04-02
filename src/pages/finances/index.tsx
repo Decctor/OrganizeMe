@@ -5,54 +5,134 @@ import { MdDelete } from "react-icons/md";
 import { FaEdit } from "react-icons/fa";
 import { RxUpload, RxDownload } from "react-icons/rx";
 import { BiTrendingDown, BiTrendingUp } from "react-icons/bi";
+import { AiFillCaretRight, AiFillCaretLeft } from "react-icons/ai";
 import FullScreenWrapper from "../../components/wrappers/FullScreenWrapper";
 import Header from "../../components/Header";
 import NewFinancialMove from "~/components/Modals/NewFinancialMove";
 import { api } from "~/utils/api";
-import { IUserProps, ExpenseType, EarningType } from "~/utils/types";
+import {
+  IUserProps,
+  ExpenseType,
+  EarningType,
+  monthExpense,
+} from "~/utils/types";
+import { parseCookies } from "nookies";
+import LoadingPage from "~/components/utils/LoadingPage";
 
 type NewFinancialMovementModalProps = {
   state: boolean;
   moveType: "SAÍDA" | "ENTRADA";
 };
 
-function FinancesMainPage({ user }: IUserProps) {
+type MonthsTextReferenceType = {
+  [key: number]: string;
+};
+const monthsTextReference: MonthsTextReferenceType = {
+  0: "JANEIRO",
+  1: "FEVEREIRO",
+  2: "MARÇO",
+  3: "ABRIL",
+  4: "MAIO",
+  5: "JUNHO",
+  6: "JULHO",
+  7: "AGOSTO",
+  8: "SETEMBRO",
+  9: "OUTUBRO",
+  10: "NOVEMBRO",
+  11: "DEZEMBRO",
+};
+function getMonthDiff(d1: Date, d2: Date) {
+  var months;
+  months = (d2.getFullYear() - d1.getFullYear()) * 12;
+  months -= d1.getMonth();
+  months += d2.getMonth();
+  return months <= 0 ? 0 : months;
+}
+const dateFilterStartReference = new Date(
+  new Date().getFullYear(),
+  new Date().getMonth(),
+  1
+);
+function FinancesMainPage() {
+  var { userId } = parseCookies(null);
   const trpc = api.useContext();
+
+  const [dateFilter, setDateFilter] = useState(dateFilterStartReference);
+
   const [newFinancialMovementModalIsOpen, setNewFinancialMovementModalIsOpen] =
     useState<NewFinancialMovementModalProps>({
       state: false,
       moveType: "SAÍDA",
     });
+
+  const { data: user, isLoading: userLoading } = api.users.getUser.useQuery(
+    userId ? userId : ""
+  );
+
+  const { data: userFinancialBalance } =
+    api.finances.getUserFinancialBalance.useQuery(user ? user.id : "", {
+      enabled: !!user,
+    });
   const {
     data: expenses,
     isFetching,
     isLoading,
+    isSuccess: expensesFetchSuccessfully,
+    isError: expensesFetchError,
     status,
-  } = api.finances.getExpenses.useQuery(user ? user.id : "");
+  } = api.finances.getMonthExpenses.useQuery(
+    {
+      id: user ? user.id : "",
+      date: dateFilter,
+    },
+    {
+      enabled: !!user,
+    }
+  );
   const {
     data: earnings,
     isFetching: areEarningsFetching,
     isLoading: areEarningsLoading,
+    isSuccess: earningsFetchSuccessfully,
     status: earningAPIStatus,
-  } = api.finances.getEarnings.useQuery(user ? user.id : "");
+  } = api.finances.getMonthEarnings.useQuery(
+    {
+      id: user ? user.id : "",
+      date: dateFilter,
+    },
+    { enabled: !!user }
+  );
+
   const { mutate: deleteExpense } = api.finances.deleteExpense.useMutation({
     onSuccess(data, variables, context) {
-      trpc.finances.getExpenses.invalidate();
+      trpc.finances.getMonthExpenses.invalidate();
+      trpc.finances.getUserFinancialBalance.invalidate();
       toast.success("Gasto excluído !");
     },
     onError(error, variables, context) {
       toast.error(error.message);
     },
   });
-
+  const { mutate: deleteEarning } = api.finances.deleteEarning.useMutation({
+    onSuccess(data, variables, context) {
+      trpc.finances.getMonthEarnings.invalidate();
+      trpc.finances.getUserFinancialBalance.invalidate();
+      toast.success("Ganho excluído !");
+    },
+    onError(error, variables, context) {
+      toast.error(error.message);
+    },
+  });
   function getTotalSpend(expenses: ExpenseType[]): number {
     var totalSum = 0;
     if (expenses && expenses.length > 0) {
       for (let i = 0; i < expenses.length; i++) {
-        if (expenses[i] != null && expenses[i] != undefined) {
-          let expenseValue = expenses[i]?.value ? expenses[i]?.value : 0;
-          if (expenseValue) totalSum = totalSum + expenseValue;
-          else totalSum = totalSum;
+        const item = expenses[i];
+        if (item) {
+          let expenseValue = 0;
+          expenseValue = item.value ? item.value : 0;
+
+          totalSum = totalSum + expenseValue;
         }
       }
       return totalSum;
@@ -78,9 +158,22 @@ function FinancesMainPage({ user }: IUserProps) {
   // .color4 { #2790b0 };
   // .color5 { #2b4e72 };
   // #ff0054
-  console.log(earnings);
-  console.log("IN FINANCES", user);
+  function getPeriodText() {
+    let month = dateFilter.getMonth();
+    let monthText = monthsTextReference[month];
+    let currentYear = dateFilter.getFullYear();
+    return `${monthText} de ${currentYear}`;
+  }
+  function formatTextValueWithInstallments(
+    value: number,
+    installments: number,
+    installmentIdentifier: number
+  ) {
+    return `${value}(${installmentIdentifier}/${installments})`;
+  }
+  console.log("BALANCE", userFinancialBalance);
 
+  if (userLoading) return <LoadingPage />;
   return (
     <FullScreenWrapper>
       <Header />
@@ -100,13 +193,13 @@ function FinancesMainPage({ user }: IUserProps) {
         </div>
         <div className="flex w-full flex-col rounded-xl bg-[#ccff33] p-2">
           <h1 className="w-full text-center text-xl font-light">MEU SALDO</h1>
-          {expenses && earnings ? (
+          {expensesFetchSuccessfully && earningsFetchSuccessfully ? (
             <p className="w-full text-center text-xl">
               R$
               <strong className="ml-1 text-2xl">
-                {(getTotalEarned(earnings) - getTotalSpend(expenses))
-                  .toFixed(2)
-                  .replace(".", ",")}
+                {userFinancialBalance?.toLocaleString("pt-br", {
+                  minimumFractionDigits: 2,
+                })}
               </strong>
             </p>
           ) : (
@@ -141,53 +234,94 @@ function FinancesMainPage({ user }: IUserProps) {
           </div>
 
           <div className="flex flex-col">
-            <p className="mb-2  text-center text-xl font-light">
+            <p className="mb-2 text-center text-xl font-light">
               VISÃO GERAL DO PERÍODO
             </p>
+            <div className="my-2 mb-5 flex items-center justify-center gap-4">
+              <button
+                onClick={() =>
+                  setDateFilter(
+                    (prevState) =>
+                      new Date(
+                        prevState.getFullYear(),
+                        prevState.getMonth() - 1,
+                        1
+                      )
+                  )
+                }
+                className="text-lg duration-300 ease-in-out hover:scale-110"
+              >
+                <AiFillCaretLeft />
+              </button>
+              <h1 className="font-medium">{getPeriodText()}</h1>
+              <button
+                onClick={() =>
+                  setDateFilter(
+                    (prevState) =>
+                      new Date(
+                        prevState.getFullYear(),
+                        prevState.getMonth() + 1,
+                        1
+                      )
+                  )
+                }
+                className="text-lg duration-300 ease-in-out hover:scale-110"
+              >
+                <AiFillCaretRight />
+              </button>
+            </div>
             <div className="flex w-full items-center justify-around gap-2">
               <div className="flex w-1/2 flex-col rounded-xl bg-[#fff] p-2 lg:w-1/3">
-                <div className="flex w-full items-center justify-between">
+                <div className="grid w-full grid-cols-1  items-center lg:grid-cols-3">
                   <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-gray-800 text-white lg:h-[40px] lg:w-[40px]">
                     <RxDownload />
                   </div>
-                  <h1 className="hidden font-medium text-gray-500 lg:block">
+                  <h1 className="hidden text-center font-medium text-gray-500 lg:block">
                     ENTRADAS
                   </h1>
-                  <div className="flex items-center gap-1 text-[#2790b0]">
+                  {/* <div className="flex items-center gap-1 text-[#2790b0]">
                     <BiTrendingUp />
                     <p>2,55%</p>
-                  </div>
+                  </div> */}
+                  <div></div>
                 </div>
                 <h1 className="mt-2 block text-center text-xs font-light text-gray-500 lg:hidden">
                   ENTRADAS
                 </h1>
                 {earnings ? (
                   <p className="mt-2 w-full text-center text-2xl font-medium text-green-500">
-                    R$ {getTotalEarned(earnings).toFixed(2).replace(".", ",")}
+                    R${" "}
+                    {getTotalEarned(earnings).toLocaleString("pt-br", {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                 ) : (
                   <p className="w-full text-center text-2xl font-medium">...</p>
                 )}
               </div>
               <div className="flex w-1/2 flex-col rounded-xl bg-[#fff] p-2 lg:w-1/3">
-                <div className="flex w-full items-center justify-between">
+                <div className="grid w-full grid-cols-3 items-center">
                   <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-gray-800 text-white lg:h-[40px] lg:w-[40px]">
                     <RxUpload />
                   </div>
-                  <h1 className="hidden font-medium text-gray-500 lg:block">
+                  <h1 className="hidden text-center font-medium text-gray-500 lg:block">
                     SAÍDAS
                   </h1>
-                  <div className="flex items-center gap-1 text-[#2790b0]">
+                  {/* <div className="flex items-center gap-1 text-[#2790b0]">
                     <BiTrendingUp />
                     <p>2,55%</p>
-                  </div>
+                  </div> */}
+                  <div></div>
                 </div>
                 <h1 className="mt-2 block text-center text-xs font-light text-gray-500 lg:hidden">
                   SAÍDAS
                 </h1>
                 {expenses ? (
                   <p className="mt-2 w-full text-center text-2xl font-medium text-[#ff0054]">
-                    R$ {getTotalSpend(expenses).toFixed(2).replace(".", ",")}
+                    R${" "}
+                    {getTotalSpend(expenses).toLocaleString("pt-br", {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                 ) : (
                   <p className="w-full text-center text-2xl font-medium">...</p>
@@ -221,7 +355,10 @@ function FinancesMainPage({ user }: IUserProps) {
                   <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
                     <FaEdit />
                   </button>
-                  <button className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]">
+                  <button
+                    onClick={() => deleteEarning(earning.id)}
+                    className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
+                  >
                     <MdDelete />
                   </button>
                 </div>
@@ -232,40 +369,48 @@ function FinancesMainPage({ user }: IUserProps) {
         <div className="flex w-full flex-col  py-2 ">
           <h1 className="font-bold text-[#ff0054]">MEUS GASTOS</h1>
           <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-start">
-            {expenses?.map((expense) => (
-              <div
-                key={expense.id}
-                className="flex max-h-[100px] w-full flex-col rounded border border-gray-200 bg-[#fff] p-3 shadow-lg lg:w-[450px]"
-              >
-                <div className="flex items-center justify-between">
-                  <h1 className="font-bold text-[#353432]">
-                    {expense.description}
-                  </h1>
-                  <h1 className="font-bold text-red-500">
-                    - R$ {expense.value.toFixed(2).replace(".", ",")}
-                  </h1>
+            {expenses &&
+              expenses?.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="flex max-h-[100px] w-full flex-col rounded border border-gray-200 bg-[#fff] p-3 shadow-lg lg:w-[450px]"
+                >
+                  <div className="flex items-center justify-between">
+                    <h1 className="font-bold text-[#353432]">
+                      {expense.description}
+                    </h1>
+                    <h1 className="font-bold text-red-500">
+                      - R${" "}
+                      {expense.installments && expense.installmentIdentifier
+                        ? formatTextValueWithInstallments(
+                            expense.value,
+                            expense.installments,
+                            expense.installmentIdentifier
+                          )
+                        : expense.value.toFixed(2).replace(".", ",")}
+                    </h1>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <h1 className="font-semibold text-[#94ba65]">
+                      {expense.category}
+                    </h1>
+                    <h1 className="break-all text-[##4e4d4a]">
+                      {new Date(expense.purchaseDate).toLocaleDateString()}
+                    </h1>
+                  </div>
+                  <div className="mt-2 flex items-center justify-end">
+                    <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => deleteExpense(expense.id)}
+                      className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
+                    >
+                      <MdDelete />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <h1 className="font-semibold text-[#94ba65]">
-                    {expense.category}
-                  </h1>
-                  <h1 className="break-all text-[##4e4d4a]">
-                    {new Date(expense.purchaseDate).toLocaleDateString()}
-                  </h1>
-                </div>
-                <div className="mt-2 flex items-center justify-end">
-                  <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={() => deleteExpense(expense.id)}
-                    className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
-                  >
-                    <MdDelete />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
 
@@ -276,7 +421,7 @@ function FinancesMainPage({ user }: IUserProps) {
           <IoMdAdd />
         </div> */}
       </div>
-      {newFinancialMovementModalIsOpen ? (
+      {newFinancialMovementModalIsOpen && user ? (
         <NewFinancialMove
           user={user}
           modalIsOpen={newFinancialMovementModalIsOpen.state}

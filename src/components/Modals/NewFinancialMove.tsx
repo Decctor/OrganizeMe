@@ -27,81 +27,14 @@ function NewFinancialMove({
     initialMoveType
   );
 
-  console.log("MOVE TYPE", moveType, "INITAL MOVE TYPE", initialMoveType);
   const [userInfo, setUserInfo] = useState(user);
+  useEffect(() => {
+    setUserInfo(user);
+  }, [user]);
   useEffect(() => {
     setMoveType(initialMoveType);
   }, [initialMoveType]);
-  // Create function from server
-  // const { mutate: createExpense } = api.finances.createExpense.useMutation({
-  //   onSuccess: async (response) => {
-  //     trpc.users.getUser.invalidate();
-  //     trpc.finances.getExpenses.invalidate();
-  //     toast.success("Gasto adicionado !");
-  //   },
-  // });
-  // const { mutate: createCategory } = api.finances.createCategory.useMutation({
-  //   onSuccess(data, variables, context) {
-  //     console.log("PASSEI AQUI", data, variables, context);
-  //     if (data) setUserInfo(data);
-  //     if (newCategoryVisible) setNewCategoryVisible(false);
-  //     toast.success("Categoria criada !");
-  //     trpc.users.getUser.invalidate();
-  //     return;
-  //   },
-  // });
-  // const { mutate: createMethod } = api.finances.createMethod.useMutation({
-  //   onSuccess(data, variables, context) {
-  //     console.log("PASSEI AQUI", data, variables, context);
-  //     if (data) setUserInfo(data);
-  //     if (newMethodVisible) setNewMethodVisible(false);
-  //     toast.success("Método de pagamento criado !");
-  //     trpc.users.getUser.invalidate();
-  //     return;
-  //   },
-  // });
 
-  // async function handleExpenseAdd() {
-  //   let result = await expenseInput.safeParseAsync(expenseInfo);
-  //   if (expenseInfo.category == "NÃO DEFINIDO") {
-  //     toast.error("Categoria não pode ser NÃO DEFINIDO");
-  //     return;
-  //   }
-  //   if (expenseInfo.method == "NÃO DEFINIDO") {
-  //     toast.error("Método de pagamento não pode ser NÃO DEFINIDO");
-  //     return;
-  //   }
-  //   if (result.success === false) {
-  //     toast.error(
-  //       result.error.issues[0]?.message
-  //         ? result.error.issues[0]?.message
-  //         : "Erro no formulário"
-  //     );
-  //   } else {
-  //     if (user) createExpense({ ...expenseInfo, userId: user.id });
-  //   }
-
-  //   // if (result.success)
-  //   //   mutate({ ...expenseInfo, userId: "clfe9204c0000uxb4e0bo4uqz" });
-  //   // else {
-  //   //   console.log(result);
-  //   //   toast.error(result.error.format()._errors.join("\n"));
-  //   // }
-  // }
-  // async function handleCreateCategory(name: string) {
-  //   console.log("CATEGORY");
-  //   if (user?.id) {
-  //     createCategory({ name: name, userId: user.id });
-  //   }
-  // }
-  // async function handleCreateMethod(name: string) {
-  //   if (user?.id) {
-  //     createMethod({ name: name, userId: user.id });
-  //     return;
-  //   }
-  // }
-  // console.log(user);
-  // console.log("Query status", status);
   return (
     <AnimatedModalWrapper modalIsOpen={modalIsOpen} height="50%" width="30%">
       <div className="flex h-full w-full flex-col">

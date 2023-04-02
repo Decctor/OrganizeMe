@@ -29,7 +29,8 @@ function NewEarning({ user }: IUserProps) {
     async onSuccess(data, variables, context) {
       try {
         await trpc.users.getUser.invalidate();
-        await trpc.finances.getEarnings.invalidate();
+        await trpc.finances.getMonthEarnings.invalidate();
+        await trpc.finances.getUserFinancialBalance.invalidate();
         setEarningInfo({
           description: "",
           value: 0,
@@ -42,6 +43,7 @@ function NewEarning({ user }: IUserProps) {
     },
   });
   async function handleEarningAdd() {
+    console.log("FUI CHAMADO");
     const result = await earningInput.safeParseAsync(earningInfo);
     if (result.success === false) {
       toast.error(

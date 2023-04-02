@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoMdAddCircle } from "react-icons/io";
 import NewCategory from "./NewCategory";
 import NewMethod from "./NewMethod";
@@ -7,13 +7,34 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { api } from "~/utils/api";
 import dayjs from "dayjs";
+import { AiOutlineClose } from "react-icons/ai";
 type ExpenseType = {
   description: string;
   category: string;
   method: string;
   value: number;
   purchaseDate: Date;
+  installments: null | number;
 };
+type InsertExpenseObj = {
+  description: string;
+  category: string;
+  method: string;
+  value: number;
+  purchaseDate: Date;
+  installments: null | number;
+  maxLastInstallmentDate: null | Date;
+  userId: string;
+};
+
+function addMonths(date: Date, monthsToAdd: number) {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth() + monthsToAdd,
+    date.getDate(),
+    date.getHours()
+  );
+}
 
 const expenseInput = z.object({
   description: z
@@ -24,6 +45,11 @@ const expenseInput = z.object({
   value: z
     .number({ required_error: "Preencha o valor do gasto." })
     .min(1, { message: "O valor mínimo do gasto é R$ 1,00." }),
+  installments: z
+    .number()
+    .min(1, { message: "O número minímo de parcelas é 1." })
+    .max(60, { message: "O número máximo de parcelas é 60." })
+    .nullable(),
 });
 function NewExpense({ user, setUserInfo }: IUserProps & any) {
   const trpc = api.useContext();
@@ -33,21 +59,28 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
     method: "NÃO DEFINIDO",
     value: 0,
     purchaseDate: new Date(),
+    installments: null,
   });
+  const [aditionalInfo, setAditionalInfo] = useState({
+    startPaymentAtPurchaseDate: false,
+  });
+
   const [newCategoryVisible, setNewCategoryVisible] = useState(false);
   const [newMethodVisible, setNewMethodVisible] = useState(false);
-
+  // Expense creation methods
   const { mutate: createExpense } = api.finances.createExpense.useMutation({
     onSuccess: async (response) => {
       try {
         await trpc.users.getUser.invalidate();
-        await trpc.finances.getExpenses.invalidate();
+        await trpc.finances.getMonthExpenses.invalidate();
+        await trpc.finances.getUserFinancialBalance.invalidate();
         setExpenseInfo({
           description: "",
           category: "NÃO DEFINIDO",
           method: "NÃO DEFINIDO",
           value: 0,
           purchaseDate: new Date(),
+          installments: null,
         });
         toast.success("Gasto adicionado !");
       } catch (error) {
@@ -55,11 +88,32 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
       }
     },
   });
+  const { mutate: createManyExpenses } =
+    api.finances.createManyExpenses.useMutation({
+      onSuccess: async (response) => {
+        try {
+          await trpc.users.getUser.invalidate();
+          await trpc.finances.getMonthExpenses.invalidate();
+          await trpc.finances.getUserFinancialBalance.invalidate();
+          setExpenseInfo({
+            description: "",
+            category: "NÃO DEFINIDO",
+            method: "NÃO DEFINIDO",
+            value: 0,
+            purchaseDate: new Date(),
+            installments: null,
+          });
+          toast.success("Gastos adicionado !");
+        } catch (error) {
+          toast.error("Erro na invalidação de queries.");
+        }
+      },
+    });
+
+  // User expense categories and methods creation
   const { mutate: createCategory } = api.finances.createCategory.useMutation({
     onSuccess(data, variables, context) {
-      console.log("PASSEI AQUI", data, variables, context);
-
-      if (data) setUserInfo(data);
+      trpc.users.getUser.invalidate();
       if (newCategoryVisible) setNewCategoryVisible(false);
       toast.success("Categoria criada !");
       trpc.users.getUser.invalidate();
@@ -68,8 +122,7 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
   });
   const { mutate: createMethod } = api.finances.createMethod.useMutation({
     onSuccess(data, variables, context) {
-      console.log("PASSEI AQUI", data, variables, context);
-      if (data) setUserInfo(data);
+      trpc.users.getUser.invalidate();
       if (newMethodVisible) setNewMethodVisible(false);
       toast.success("Método de pagamento criado !");
       trpc.users.getUser.invalidate();
@@ -77,6 +130,7 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
     },
   });
 
+  // Handler
   async function handleExpenseAdd() {
     const result = await expenseInput.safeParseAsync(expenseInfo);
     if (expenseInfo.category == "NÃO DEFINIDO") {
@@ -94,18 +148,48 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           : "Erro no formulário"
       );
     } else {
-      if (user) createExpense({ ...expenseInfo, userId: user.id });
+      // Passed through validations
+      if (expenseInfo.installments && expenseInfo.installments > 0) {
+        // For expenses with installments, create multiple documents
+        var arrObjs = [];
+        for (let i = 0; i < expenseInfo.installments; i++) {
+          let monthsToAdd = aditionalInfo.startPaymentAtPurchaseDate
+            ? i
+            : i + 1;
+          let obj = {
+            description: expenseInfo.description,
+            category: expenseInfo.category,
+            method: expenseInfo.method,
+            value: Number(
+              (expenseInfo.value / expenseInfo.installments).toFixed(2)
+            ),
+            purchaseDate: expenseInfo.purchaseDate,
+            paymentDate: addMonths(expenseInfo.purchaseDate, monthsToAdd),
+            installments: expenseInfo.installments,
+            installmentIdentifier: i + 1,
+            userId: user ? user.id : "",
+          };
+          arrObjs.push(obj);
+        }
+        console.log("ARRAY DE EXPENSES", arrObjs);
+        if (user) createManyExpenses(arrObjs);
+      } else {
+        // For expenses with no installments, create individual document
+        if (user)
+          console.log("EXPENSE INDIVIDUAL", {
+            ...expenseInfo,
+            paymentDate: expenseInfo.purchaseDate,
+            userId: user.id,
+          });
+        createExpense({
+          ...expenseInfo,
+          paymentDate: expenseInfo.purchaseDate,
+          userId: user.id,
+        });
+      }
     }
-
-    // if (result.success)
-    //   mutate({ ...expenseInfo, userId: "clfe9204c0000uxb4e0bo4uqz" });
-    // else {
-    //   console.log(result);
-    //   toast.error(result.error.format()._errors.join("\n"));
-    // }
   }
   async function handleCreateCategory(name: string) {
-    console.log("CATEGORY");
     if (user?.id) {
       createCategory({ name: name, userId: user.id });
     }
@@ -116,7 +200,7 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
       return;
     }
   }
-  console.log(expenseInfo);
+
   return (
     <>
       <div className="flex w-full flex-col items-center gap-1">
@@ -138,10 +222,17 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           <h1 className="text-center font-[Roboto] text-lg font-bold text-[#2790b0]">
             CATEGORIA DO GASTO
           </h1>
-          <IoMdAddCircle
-            onClick={() => setNewCategoryVisible(true)}
-            style={{ color: "rgb(34,197,94)", cursor: "pointer" }}
-          />
+          {newCategoryVisible ? (
+            <AiOutlineClose
+              onClick={() => setNewCategoryVisible(false)}
+              style={{ color: "rgb(239,68,68)", cursor: "pointer" }}
+            />
+          ) : (
+            <IoMdAddCircle
+              onClick={() => setNewCategoryVisible(true)}
+              style={{ color: "rgb(34,197,94)", cursor: "pointer" }}
+            />
+          )}
         </div>
         {newCategoryVisible ? (
           <NewCategory handleCreateCategory={handleCreateCategory} />
@@ -178,10 +269,17 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           <h1 className="text-center font-[Roboto] text-lg font-bold text-[#2790b0]">
             MÉTODO DE PAGAMENTO
           </h1>
-          <IoMdAddCircle
-            onClick={() => setNewMethodVisible(true)}
-            style={{ color: "rgb(34,197,94)", cursor: "pointer" }}
-          />
+          {newMethodVisible ? (
+            <AiOutlineClose
+              onClick={() => setNewMethodVisible(false)}
+              style={{ color: "rgb(239,68,68)", cursor: "pointer" }}
+            />
+          ) : (
+            <IoMdAddCircle
+              onClick={() => setNewMethodVisible(true)}
+              style={{ color: "rgb(34,197,94)", cursor: "pointer" }}
+            />
+          )}
         </div>
         {newMethodVisible ? (
           <NewMethod handleCreateMethod={handleCreateMethod} />
@@ -244,6 +342,76 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           className="w-full p-1 text-center text-xs outline-none"
           placeholder="DESCREVA AQUI O VALOR GASTO"
         />
+      </div>
+      <div className="flex w-full flex-col items-center gap-1">
+        <h1 className="text-center font-[Roboto] text-lg font-bold text-[#2790b0]">
+          PARCELAMENTO
+        </h1>
+        <div className="flex-box flex w-full">
+          <div className="flex w-full items-center justify-center gap-2">
+            <input
+              checked={
+                expenseInfo.installments != null && expenseInfo.installments > 0
+              }
+              onChange={(e) =>
+                setExpenseInfo((prev) => ({
+                  ...prev,
+                  installments: prev.installments ? null : 1,
+                }))
+              }
+              name={"applyInstallments"}
+              id={"applyInstallments"}
+              type={"checkbox"}
+            />
+            <label
+              htmlFor="applyInstallments"
+              className="text-xs text-gray-500"
+            >
+              {!expenseInfo.installments ? "NÃO PARCELADO" : "PARCELADO"}
+            </label>
+          </div>
+        </div>
+        {expenseInfo.installments && expenseInfo.installments > 0 ? (
+          <>
+            <h1 className="mt-2 w-full text-center text-xs font-medium text-[#2b4e72]">
+              NÚMERO DE PARCELAS
+            </h1>
+            <input
+              value={expenseInfo.installments}
+              onChange={(e) =>
+                setExpenseInfo({
+                  ...expenseInfo,
+                  installments: Math.ceil(Number(e.target.value)),
+                })
+              }
+              type="number"
+              className="w-full p-1 text-center text-xs outline-none"
+              placeholder="DESCREVA AQUI O VALOR GASTO"
+            />
+            <select
+              value={
+                aditionalInfo.startPaymentAtPurchaseDate
+                  ? "INICIAR PARCELAMENTO NO MÊS DE COMPRA"
+                  : "INICIAR PARCELAMENTO NO MÊS SEGUINTE"
+              }
+              onChange={(e) =>
+                setAditionalInfo({
+                  ...aditionalInfo,
+                  startPaymentAtPurchaseDate:
+                    e.target.value == "INICIAR PARCELAMENTO NO MÊS DE COMPRA",
+                })
+              }
+              className="grow text-center text-xs outline-none"
+            >
+              <option value={"INICIAR PARCELAMENTO NO MÊS DE COMPRA"}>
+                INICIAR PARCELAMENTO NO MÊS DE COMPRA
+              </option>
+              <option value={"INICIAR PARCELAMENTO NO MÊS SEGUINTE"}>
+                INICIAR PARCELAMENTO NO MÊS SEGUINTE
+              </option>
+            </select>
+          </>
+        ) : null}
       </div>
       <div className="flex items-center justify-center">
         <button

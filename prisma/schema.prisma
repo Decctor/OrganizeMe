@@ -50,7 +50,9 @@ model Expenses {
     method String 
     value Float 
     purchaseDate DateTime @default(now())
+    paymentDate DateTime @default(now())
     installments Int?
+    installmentIdentifier Int?
     user User @relation(fields: [userId], references: [id])
     userId String
 }

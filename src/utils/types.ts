@@ -1,9 +1,16 @@
+import { inferRouterOutputs } from "@trpc/server";
+import { AppRouter } from "~/server/api/root";
+
 export type Categories = {
   name: string;
 };
 export type Methods = {
   name: string;
 };
+type RouterOutput = inferRouterOutputs<AppRouter>;
+type monthExpensesOutput = RouterOutput["finances"]["getMonthExpenses"];
+export type monthExpense = monthExpensesOutput[number];
+
 export type ExpenseType = {
   id: string;
   description: string;
@@ -11,7 +18,9 @@ export type ExpenseType = {
   method: string;
   value: number;
   purchaseDate: Date;
+  paymentDate: Date;
   installments?: number | null;
+  installmentIdentifier?: number | null;
 };
 export type EarningType = {
   id: string;
