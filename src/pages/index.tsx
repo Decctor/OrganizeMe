@@ -39,7 +39,7 @@ const Home: NextPage = ({ user }: IUserProps) => {
           <div className="flex h-[300px] w-full flex-col items-center justify-center rounded-md border border-gray-200 bg-blue-500 text-white shadow-sm lg:h-[500px] lg:w-1/3">
             <GiStairsGoal style={{ color: "white", fontSize: "65px" }} />
             <p className="mt-1 text-xl font-medium text-white">
-              HÁBITOS EM METAS
+              HÁBITOS E METAS
             </p>
             <p className="w-[60%] text-center text-white">Em construção...</p>
           </div>
