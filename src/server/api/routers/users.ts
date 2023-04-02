@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-
+import { hashSync, compareSync } from "bcrypt";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const usersRouter = createTRPCRouter({
@@ -13,14 +13,26 @@ export const usersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log(input);
-      return ctx.prisma.user.create({
+      let existingUserInDb = await ctx.prisma.user.findFirst({
+        where: {
+          email: input.email,
+        },
+      });
+      if (existingUserInDb)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Email já cadastrado.",
+        });
+      let hashedPassword = hashSync(input.password, 10);
+      console.log("HASHED PASS", hashedPassword);
+      await ctx.prisma.user.create({
         data: {
           name: input.name,
           email: input.email,
-          password: input.password,
+          password: hashedPassword,
         },
       });
+      return "Usuário criado com sucesso. Redirecionando para área de login.";
     }),
   login: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string() }))
@@ -46,7 +58,11 @@ export const usersRouter = createTRPCRouter({
           message: "Usuário não existente.",
         });
       }
-      if (correspondingUserInDb.password != input.password) {
+      let compareResult = compareSync(
+        input.password,
+        correspondingUserInDb?.password
+      );
+      if (!compareResult) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Senha incorreta.",

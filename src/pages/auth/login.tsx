@@ -16,6 +16,7 @@ function LoginPage() {
   const { data, refetch, isFetching, isError, error } =
     api.users.login.useQuery(loginInfo, {
       enabled: false,
+      retry: false,
       onError: async (error) => {
         console.log("ERROR", error);
         toast.error(error.message);

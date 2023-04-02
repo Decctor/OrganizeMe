@@ -9,8 +9,11 @@ import FullScreenWrapper from "~/components/wrappers/FullScreenWrapper";
 
 import { api } from "~/utils/api";
 import { IUserProps } from "~/utils/types";
-const Home: NextPage = ({ user }: IUserProps) => {
-  console.log("USER", user);
+import { parseCookies } from "nookies";
+import LoadingPage from "~/components/utils/LoadingPage";
+const Home: NextPage = () => {
+  var { userId } = parseCookies(null);
+  if (!userId) return <LoadingPage />;
   return (
     <>
       <Head>

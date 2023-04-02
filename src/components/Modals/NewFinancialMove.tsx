@@ -36,7 +36,7 @@ function NewFinancialMove({
   }, [initialMoveType]);
 
   return (
-    <AnimatedModalWrapper modalIsOpen={modalIsOpen} height="50%" width="30%">
+    <AnimatedModalWrapper modalIsOpen={modalIsOpen} height="70%" width="30%">
       <div className="flex h-full w-full flex-col">
         <div className="flex items-center justify-between border-b border-gray-200 p-2">
           <h1 className="text-sm font-bold text-[#2b4e72]">

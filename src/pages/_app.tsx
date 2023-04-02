@@ -7,6 +7,7 @@ import "~/styles/globals.css";
 import { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 import { parseCookies } from "nookies";
+import LoadingPage from "~/components/utils/LoadingPage";
 type User = {
   name: string;
   email: string;
@@ -36,6 +37,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     //   getUser();
     // }
   }, [userId]);
+
   return (
     <>
       <Component
