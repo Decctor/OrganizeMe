@@ -203,7 +203,7 @@ function FinancesMainPage() {
               </strong>
             </p>
           ) : (
-            <p className="animate-pulse">...</p>
+            <p className="w-full animate-pulse text-center">...</p>
           )}
 
           <div className="my-4 flex flex-col items-center justify-center gap-2 lg:flex-row">

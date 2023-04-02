@@ -1,6 +1,9 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import { GiStairsGoal } from "react-icons/gi";
+import { VscChecklist } from "react-icons/vsc";
+import { RiMoneyDollarCircleFill } from "react-icons/ri";
 import Header from "~/components/Header";
 import FullScreenWrapper from "~/components/wrappers/FullScreenWrapper";
 
@@ -17,15 +20,35 @@ const Home: NextPage = ({ user }: IUserProps) => {
       </Head>
       <FullScreenWrapper>
         <Header />
-        <div className="flex grow flex-col items-center justify-center gap-3 p-6 lg:flex-row">
-          <div className="flex h-[500px] w-full items-center justify-center border border-gray-200 shadow-sm lg:w-1/3">
-            <Link href={"/finances"}>CONTROLE FINANCEIRO</Link>
+        <div className="flex grow flex-col items-center justify-center gap-3 bg-[#f8f9fa] p-6 lg:flex-row">
+          <div className="flex h-[300px] w-full  flex-col items-center justify-center rounded-md border border-gray-200 bg-green-500 shadow-sm lg:h-[500px] lg:w-1/3">
+            <Link
+              href={"/finances"}
+              className="flex h-full w-full grow flex-col items-center justify-center"
+            >
+              <RiMoneyDollarCircleFill
+                style={{ color: "white", fontSize: "65px" }}
+              />
+              <p className="text-xl font-medium text-white">FINANÇAS</p>
+              <p className="w-[60%] text-center text-white">
+                Acompanhe suas finanças pessoais e tenha controle do seu
+                orçamento.
+              </p>
+            </Link>
           </div>
-          <div className="flex h-[500px] w-full items-center justify-center border border-gray-200 shadow-sm lg:w-1/3">
-            HÁBITOS E METAS
+          <div className="flex h-[300px] w-full flex-col items-center justify-center rounded-md border border-gray-200 bg-blue-500 text-white shadow-sm lg:h-[500px] lg:w-1/3">
+            <GiStairsGoal style={{ color: "white", fontSize: "65px" }} />
+            <p className="mt-1 text-xl font-medium text-white">
+              HÁBITOS EM METAS
+            </p>
+            <p className="w-[60%] text-center text-white">Em construção...</p>
           </div>
-          <div className="flex h-[500px] w-full items-center justify-center border border-gray-200 shadow-sm lg:w-1/3">
-            ATIVIDADES A FAZER
+          <div className="flex h-[300px] w-full flex-col items-center justify-center rounded-md border border-gray-200 bg-yellow-500 text-white shadow-sm lg:h-[500px] lg:w-1/3">
+            <VscChecklist style={{ color: "white", fontSize: "65px" }} />
+            <p className="mt-1 text-xl font-medium text-white">
+              ATIVIDADES A FAZER
+            </p>
+            <p className="w-[60%] text-center text-white">Em construção...</p>
           </div>
         </div>
       </FullScreenWrapper>

@@ -15,7 +15,7 @@ function Header() {
   //   }
   // }
   return (
-    <div className="sticky top-0 h-[70px] w-full border-b border-gray-200">
+    <div className="sticky top-0 z-10 h-[70px] w-full border-b border-gray-200 bg-[#fff]">
       <div className="flex h-full w-full items-center justify-between px-2">
         <div></div>
         <div className="flex items-center justify-center">
