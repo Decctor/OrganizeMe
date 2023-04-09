@@ -11,6 +11,8 @@ type RouterOutput = inferRouterOutputs<AppRouter>;
 type monthExpensesOutput = RouterOutput["finances"]["getMonthExpenses"];
 export type monthExpense = monthExpensesOutput[number];
 
+export type analyticsOutput = RouterOutput["finances"]["getAnalytics"];
+
 export type ExpenseType = {
   id: string;
   description: string;

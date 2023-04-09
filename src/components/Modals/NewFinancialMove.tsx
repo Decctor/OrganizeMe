@@ -51,11 +51,11 @@ function NewFinancialMove({
             </button>
           </div>
         </div>
-        <div className="overscroll-y my-2 flex grow flex-col gap-2 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300">
-          <div className="flex items-center justify-center gap-2">
+        <div className="overscroll-y my-2  flex grow flex-col gap-2 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300">
+          <div className="flex items-center justify-center gap-2  p-2">
             <h1
               onClick={() => setMoveType("SAÍDA")}
-              className={`cursor-pointer rounded border-2 border-red-500 p-1 font-bold text-red-500 ${
+              className={`cursor-pointer rounded  bg-[#ff0054] p-1 font-bold text-white  ${
                 moveType == "SAÍDA" ? "opacity-100" : "opacity-30"
               }`}
             >
@@ -63,8 +63,8 @@ function NewFinancialMove({
             </h1>
             <h1
               onClick={() => setMoveType("ENTRADA")}
-              className={`cursor-pointer rounded border-2 border-green-500 p-1 font-bold text-green-500 ${
-                moveType == "ENTRADA" ? "opacity-100" : "opacity-30"
+              className={`cursor-pointer rounded bg-[#2790b0]  p-1 font-bold text-white ${
+                moveType == "ENTRADA" ? "opacity-100" : "opacity-40"
               }`}
             >
               ENTRADA

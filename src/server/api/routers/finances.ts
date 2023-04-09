@@ -355,4 +355,53 @@ export const financesRouter = createTRPCRouter({
         });
       }
     }),
+  getAnalytics: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        startDate: z.date(),
+        endDate: z.date(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate } = input;
+      try {
+        const expenses = await ctx.prisma.expenses.findMany({
+          where: {
+            userId: input.id,
+            AND: [
+              {
+                paymentDate: { gte: startDate },
+              },
+              {
+                paymentDate: { lte: endDate },
+              },
+            ],
+          },
+        });
+        const earnings = await ctx.prisma.earnings.findMany({
+          where: {
+            userId: input.id,
+            AND: [
+              {
+                date: { gte: startDate },
+              },
+              {
+                date: { lte: endDate },
+              },
+            ],
+          },
+        });
+        return {
+          expenses: expenses,
+          earnings: earnings,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
+    }),
 });
