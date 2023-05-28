@@ -48,11 +48,18 @@ const Home: NextPage = () => {
               <p className="w-[60%] text-center text-white">Em construção...</p>
             </div>
             <div className="flex h-[300px] w-full flex-col items-center justify-center rounded-md border border-gray-200 bg-yellow-500 text-white shadow-sm lg:h-[500px] lg:w-1/3">
-              <VscChecklist style={{ color: "white", fontSize: "65px" }} />
-              <p className="mt-1 text-xl font-medium text-white">
-                ATIVIDADES A FAZER
-              </p>
-              <p className="w-[60%] text-center text-white">Em construção...</p>
+              <Link
+                href={"/activities"}
+                className="flex h-full w-full grow flex-col items-center justify-center"
+              >
+                <VscChecklist style={{ color: "white", fontSize: "65px" }} />
+                <p className="mt-1 text-xl font-medium text-white">
+                  ATIVIDADES A FAZER
+                </p>
+                <p className="w-[60%] text-center text-white">
+                  Em construção...
+                </p>
+              </Link>
             </div>
           </div>
         </FullScreenWrapper>

@@ -41,3 +41,17 @@ export type IUserProps = {
     budgets?: Array<object>;
   };
 };
+export type ActivityItem = {
+  id?: string;
+  description: string;
+  done: boolean;
+};
+export interface Activity {
+  id?: string;
+  title: string;
+  items: ActivityItem[];
+  userId?: String;
+  dueDate?: Date | string | null;
+  createdAt?: Date | string;
+  concludedAt?: Date | string;
+}

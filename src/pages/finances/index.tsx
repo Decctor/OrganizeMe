@@ -54,6 +54,7 @@ const dateFilterStartReference = new Date(
   new Date().getMonth(),
   1
 );
+
 function FinancesMainPage() {
   var { userId } = parseCookies(null);
   const trpc = api.useContext();
@@ -363,9 +364,9 @@ function FinancesMainPage() {
                   </h1>
                 </div>
                 <div className="mt-2 flex items-center justify-end">
-                  <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
+                  {/* <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
                     <FaEdit />
-                  </button>
+                  </button> */}
                   <button
                     onClick={() => deleteEarning(earning.id)}
                     className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
@@ -414,9 +415,9 @@ function FinancesMainPage() {
                       {expense.method}
                     </h1>
                     <div className="items-centert flex gap-3 lg:gap-1">
-                      <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
+                      {/* <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
                         <FaEdit />
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => deleteExpense(expense.id)}
                         className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"

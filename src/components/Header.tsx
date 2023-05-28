@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { destroyCookie } from "nookies";
 import React from "react";
+import Logo from "../utils/images/logo.png";
 import { toast } from "react-hot-toast";
 import { MdOutlineLogout } from "react-icons/md";
 function Header() {
@@ -20,7 +22,9 @@ function Header() {
         <div></div>
         <div className="flex items-center justify-center">
           <Link href={"/"}>
-            <h1 className="font-bold text-[#00c16c]">OrganizeMe</h1>
+            <div className="flex h-[60px] w-[100px] items-center justify-center">
+              <Image src={Logo} alt="OrganizeMe Logo" width={100} height={60} />
+            </div>
           </Link>
         </div>
         <div>
