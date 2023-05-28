@@ -71,9 +71,9 @@ model Activities {
     items ActivityItem[]
     user User @relation(fields: [userId], references: [id])
     userId String
-    dueDate DateTime? @default(now())
+    dueDate DateTime? 
     createdAt DateTime @default(now())
-    concludedAt DateTime @default(now())
+    concludedAt DateTime?
 }
 model ActivityItem {
     id String @id @default(cuid())

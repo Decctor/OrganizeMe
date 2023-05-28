@@ -20,10 +20,11 @@ export const activitiesRouter = createTRPCRouter({
           required_error: "Por favor, forneça o ID do usuário.",
           invalid_type_error: "Por favor, forneça um ID válido de usuário.",
         }),
-        dueDate: z.string().datetime().optional().nullable(),
+        dueDate: z.nullable(z.string().datetime()),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      console.log(input);
       try {
         await ctx.prisma.activities.create({
           data: {
@@ -41,6 +42,8 @@ export const activitiesRouter = createTRPCRouter({
         });
         return "Atividade criada com sucesso.";
       } catch (error) {
+        console.log(input);
+        console.log(error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -52,15 +55,27 @@ export const activitiesRouter = createTRPCRouter({
     .input(z.string())
     .query(async ({ ctx, input }) => {
       try {
-        const activities = await ctx.prisma.activities.findMany({
+        const open = await ctx.prisma.activities.findMany({
           where: {
             userId: input,
+            concludedAt: null,
           },
           include: {
             items: true,
           },
         });
-        return activities;
+        const closed = await ctx.prisma.activities.findMany({
+          where: {
+            userId: input,
+            concludedAt: {
+              not: null,
+            },
+          },
+          include: {
+            items: true,
+          },
+        });
+        return { open: open, closed: closed };
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -81,7 +96,30 @@ export const activitiesRouter = createTRPCRouter({
             done: input.done,
           },
         });
-        return "Item concluído com sucesso.";
+        return "Status do item atualizado com sucesso.";
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
+    }),
+  updateActivityStatus: publicProcedure
+    .input(z.object({ id: z.string(), done: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const concludedAt = input.done ? new Date() : null;
+      console.log("AAA", concludedAt);
+      try {
+        await ctx.prisma.activities.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            concludedAt: concludedAt,
+          },
+        });
+        return "Status atualizado com sucesso.";
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

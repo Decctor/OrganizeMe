@@ -19,15 +19,15 @@ function Header() {
   return (
     <div className="sticky top-0 z-10 h-[70px] w-full border-b border-gray-200 bg-[#fff]">
       <div className="flex h-full w-full items-center justify-between px-2">
-        <div></div>
-        <div className="flex items-center justify-center">
+        <div className="w-1/3"></div>
+        <div className="flex w-1/3 items-center justify-center">
           <Link href={"/"}>
-            <div className="flex h-[60px] w-[100px] items-center justify-center">
+            <div className="flex h-[60px] w-[70px] items-center justify-center">
               <Image src={Logo} alt="OrganizeMe Logo" width={100} height={60} />
             </div>
           </Link>
         </div>
-        <div>
+        <div className="flex w-1/3 items-center justify-end">
           <button
             onClick={() => {
               void (async () => {

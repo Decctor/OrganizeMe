@@ -28,7 +28,7 @@ function ActivitiesMainPage() {
     <FullScreenWrapper>
       <Header />
       <div className="flex w-full grow flex-col bg-[#202124] p-6">
-        <div className="flex w-full items-center justify-between border-b border-gray-300">
+        <div className="flex w-full flex-col items-center justify-between border-b border-gray-300 pb-2 lg:flex-row lg:pb-0">
           <div className="mb-4 flex flex-col items-start">
             <h1 className="w-full text-center text-xl font-bold text-white lg:text-start">
               Olá,{" "}
@@ -45,26 +45,36 @@ function ActivitiesMainPage() {
           <div className="flex items-center justify-center">
             <button
               onClick={() => setNewActivityModalIsOpen(true)}
-              className="hover:bg-[#00C16C] rounded bg-[#398378] px-2  py-1 font-medium text-white duration-300 ease-in-out hover:scale-105"
+              className="rounded bg-[#398378] px-2 py-1  font-medium text-white duration-300 ease-in-out hover:scale-105 hover:bg-[#00C16C]"
             >
               Nova Atividade
             </button>
           </div>
         </div>
-        <div className="flex w-full grow flex-wrap justify-around py-2">
+        <div className="flex h-fit min-h-[400px] w-full flex-col flex-wrap items-center justify-start gap-2 py-2 md:flex-row md:items-start lg:justify-around">
           {activitiesLoading ? <LoadingPage /> : null}
-          {activitiesSuccess && activities?.length > 0 ? (
-            activities?.map((activity, index) => (
+          {activitiesSuccess && activities?.open.length > 0 ? (
+            activities?.open.map((activity, index) => (
               <ActivityCard activity={activity} key={index} />
             ))
           ) : (
-            <div className="flex grow items-center justify-center">
+            <div className="flex h-[400px] items-center justify-center">
               <p className="font-light italic text-gray-500">
                 Sem atividades em aberto...
               </p>
             </div>
           )}
         </div>
+        {activities && activities.closed.length > 0 ? (
+          <div className="flex w-full flex-col">
+            <h1 className="font-medium text-white">Atividades finalizadas</h1>
+            <div className="flex h-fit w-full flex-col flex-wrap items-center justify-start gap-2 py-2 md:flex-row md:items-start lg:justify-around">
+              {activities?.closed.map((activity, index) => (
+                <ActivityCard activity={activity} key={index} />
+              ))}
+            </div>
+          </div>
+        ) : null}
         {newActivityModalIsOpen ? (
           <NewActivityModal
             userId={userId}

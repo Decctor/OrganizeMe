@@ -50,6 +50,7 @@ function AnimatedModalWrapper({
     backgroundColor: "rgba(0,0,0,.85)",
     zIndex: 1000,
   };
+  const useClassName = `fixed top-[50%] left-[50%] z-[1000] h-[90%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:h-[${height}] lg:w-[${width}]`;
   return (
     <>
       {modalIsOpen && (
@@ -72,7 +73,7 @@ function AnimatedModalWrapper({
               variants={modal}
               initial="hidden"
               animate="visible"
-              className={`fixed top-[50%] left-[50%] z-[1000] h-[90%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:h-[${height}] lg:w-[${width}]`}
+              className={useClassName}
               // style={{
               //   position: "fixed",
               //   top: "50%",

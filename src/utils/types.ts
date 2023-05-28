@@ -53,5 +53,5 @@ export interface Activity {
   userId?: String;
   dueDate?: Date | string | null;
   createdAt?: Date | string;
-  concludedAt?: Date | string;
+  concludedAt?: Date | string | null;
 }
