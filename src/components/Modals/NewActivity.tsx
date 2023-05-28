@@ -140,7 +140,7 @@ function NewActivityModal({
           variants={modal}
           initial="hidden"
           animate="visible"
-          className={`fixed left-[50%] top-[50%] z-[1000] h-[45%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:h-[55%] lg:w-[35%]`}
+          className={`fixed left-[50%] top-[50%] z-[1000] h-[65%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:h-[55%] lg:w-[35%]`}
         >
           <div className="flex h-full w-full flex-col">
             <div className="flex items-center justify-between border-b border-gray-200 py-2">
