@@ -55,7 +55,11 @@ function ActivitiesMainPage() {
           {activitiesLoading ? <LoadingPage /> : null}
           {activitiesSuccess && activities?.open.length > 0 ? (
             activities?.open.map((activity, index) => (
-              <ActivityCard activity={activity} key={index} />
+              <ActivityCard
+                activity={activity}
+                key={index}
+                userId={userId ? userId : ""}
+              />
             ))
           ) : (
             <div className="flex h-[400px] items-center justify-center">
@@ -70,7 +74,11 @@ function ActivitiesMainPage() {
             <h1 className="font-medium text-white">Atividades finalizadas</h1>
             <div className="flex h-fit w-full flex-col flex-wrap items-center justify-start gap-2 py-2 md:flex-row md:items-start lg:justify-around">
               {activities?.closed.map((activity, index) => (
-                <ActivityCard activity={activity} key={index} />
+                <ActivityCard
+                  activity={activity}
+                  key={index}
+                  userId={userId ? userId : ""}
+                />
               ))}
             </div>
           </div>

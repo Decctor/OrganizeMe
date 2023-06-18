@@ -156,6 +156,9 @@ export const financesRouter = createTRPCRouter({
               },
             ],
           },
+          orderBy: {
+            paymentDate: "asc",
+          },
         });
         return firstFisterItems;
       } catch (error) {
@@ -249,6 +252,9 @@ export const financesRouter = createTRPCRouter({
               date: { lte: lastDay },
             },
           ],
+        },
+        orderBy: {
+          date: "asc",
         },
       });
       return firstFisterItems;

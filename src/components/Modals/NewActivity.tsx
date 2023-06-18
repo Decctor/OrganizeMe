@@ -53,7 +53,55 @@ function NewActivityModal({
   });
 
   const { mutate: createActivity } = api.activities.createActivity.useMutation({
-    onSuccess: async (response) => {
+    onMutate: async (variables) => {
+      // Cance
+      const activitiesSnapshot =
+        trpc.activities.getUserActivities.getData(userId);
+      if (activitiesSnapshot) {
+        const newOpenActivitiesArr = {
+          ...activitiesSnapshot,
+          open: [...activitiesSnapshot?.open, activityHolder],
+        };
+        if (userId)
+          trpc.activities.getUserActivities.setData(userId, (prev) => {
+            const optimisticActivity = {
+              id: "holder",
+              title: activityHolder.title,
+              items: activityHolder.items,
+              userId: userId ? userId : "",
+              dueDate: null,
+              createdAt: new Date(),
+              concludedAt: null,
+            };
+            if (!prev) return { open: [optimisticActivity], closed: [] };
+            return { ...prev, open: [...prev.open, optimisticActivity] };
+          });
+      }
+      return activitiesSnapshot;
+    },
+    // onSuccess: async (response) => {
+    //   try {
+    //     await trpc.activities.getUserActivities.invalidate();
+    //     setActivityHolder({
+    //       title: "",
+    //       items: [],
+    //       dueDate: undefined,
+    //     });
+    //     toast.success(response);
+    //   } catch (error) {
+    //     console.log("ERRO", error);
+    //     if (error instanceof TRPCClientError) {
+    //       toast.error("ERRO");
+    //       return;
+    //     }
+    //     if (error instanceof Error) {
+    //       let errorMsg = error.message;
+    //       toast.error("ERRO");
+    //       return;
+    //     }
+    //   }
+    // },
+    onSettled: async (response) => {
       try {
         await trpc.activities.getUserActivities.invalidate();
         setActivityHolder({
@@ -61,7 +109,7 @@ function NewActivityModal({
           items: [],
           dueDate: undefined,
         });
-        toast.success(response);
+        if (response) toast.success(response);
       } catch (error) {
         console.log("ERRO", error);
         if (error instanceof TRPCClientError) {
@@ -119,7 +167,7 @@ function NewActivityModal({
       });
     }
   }
-  console.log(activityHolder);
+
   return (
     <AnimatePresence>
       <motion.div

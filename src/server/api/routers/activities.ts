@@ -20,7 +20,7 @@ export const activitiesRouter = createTRPCRouter({
           required_error: "Por favor, forneça o ID do usuário.",
           invalid_type_error: "Por favor, forneça um ID válido de usuário.",
         }),
-        dueDate: z.nullable(z.string().datetime()),
+        dueDate: z.nullable(z.string()),
       })
     )
     .mutation(async ({ ctx, input }) => {
