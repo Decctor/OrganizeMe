@@ -133,9 +133,11 @@ function ActivityCard({ activity, userId }: ActivityCardProps) {
         // Return the previous data so we can revert if something goes wrong
         return { prevData };
       },
+      onSuccess: async (response) => {
+        toast.success(response);
+      },
       onSettled: async (response) => {
         await trpc.activities.getUserActivities.invalidate();
-        if (response) toast.success(response);
       },
       onError: async (error, payload, ctx) => {
         trpc.activities.getUserActivities.setData("", ctx?.prevData);
