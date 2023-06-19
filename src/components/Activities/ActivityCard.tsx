@@ -8,12 +8,57 @@ import { toast } from "react-hot-toast";
 import { BsCheck } from "react-icons/bs";
 type ActivityCardProps = {
   activity: Activity;
+  userId: string;
 };
 
-function ActivityCard({ activity }: ActivityCardProps) {
+function ActivityCard({ activity, userId }: ActivityCardProps) {
   const trpc = api.useContext();
 
   const { mutate: updateItem } = api.activities.updateActivityItem.useMutation({
+    onMutate: async (payload) => {
+      console.log("PAYLOAD", payload);
+      // Cancel outgoing fetches (so they don't overwrite our optimistic update)
+      await trpc.activities.getUserActivities.cancel();
+
+      const prevData = trpc.activities.getUserActivities.getData();
+
+      // Dealing with optimistic changes
+      trpc.activities.getUserActivities.setData(userId, (oldData) => {
+        console.log("OLD DATA", oldData);
+        // Giving that items should not be updated in closed activities, searching within the open activities
+        // for the parent activity being updated
+        const openActivities = oldData ? oldData.open : [];
+        const updatingActivity = openActivities.find((act) =>
+          act.items.some((i) => i.id == payload.id)
+        );
+        // Getting the item index whithin the activity
+        if (updatingActivity) {
+          const updatingActivityIndex = openActivities
+            .map((act) => act.id)
+            .indexOf(updatingActivity.id);
+          const itemIndex = updatingActivity.items
+            .map((i) => i.id)
+            .indexOf(payload.id);
+          console.log("LIST OF INDEXED", itemIndex);
+          // Manually setting the done status for the item
+          if (updatingActivity.items[itemIndex]?.id) {
+            updatingActivity.items[itemIndex].done = payload.done;
+          }
+
+          openActivities[updatingActivityIndex] = updatingActivity;
+
+          const dataStateObj = {
+            open: openActivities,
+            closed: oldData ? oldData.closed : [],
+          };
+          return dataStateObj;
+        } else {
+          return oldData;
+        }
+      });
+      // Return the previous data so we can revert if something goes wrong
+      return { prevData };
+    },
     onSuccess: async (response) => {
       await trpc.activities.getUserActivities.invalidate();
       toast.success(response);
@@ -26,11 +71,74 @@ function ActivityCard({ activity }: ActivityCardProps) {
   });
   const { mutate: updateActivity } =
     api.activities.updateActivityStatus.useMutation({
-      onSuccess: async (response) => {
-        await trpc.activities.getUserActivities.invalidate();
-        toast.success(response);
+      onMutate: async (payload) => {
+        // Cancel outgoing fetches (so they don't overwrite our optimistic update)
+        await trpc.activities.getUserActivities.cancel();
+
+        // Get the data from the queryCache
+        const prevData = trpc.activities.getUserActivities.getData();
+
+        // Dealing with optimistic changes
+        trpc.activities.getUserActivities.setData(userId, (oldData) => {
+          console.log("OLD DATA", oldData);
+          const updatingId = payload.id;
+          // If the payload done is true, then activity was "open", so change arrays
+          if (payload.done == true) {
+            // Getting updating activity to change arrays
+            const previousOpenActivities = oldData ? oldData.open : [];
+            const updatingActivity = previousOpenActivities.find(
+              (act) => act.id == updatingId
+            );
+            if (updatingActivity) {
+              updatingActivity.concludedAt = new Date();
+              const newOpenActivities = previousOpenActivities.filter(
+                (act) => act.id != updatingId
+              );
+              const newClosedActivities = oldData
+                ? [...oldData.closed, updatingActivity]
+                : [updatingActivity];
+              const dataStateObj = {
+                open: newOpenActivities,
+                closed: newClosedActivities,
+              };
+              console.log("NOVO SET DE DADOS", dataStateObj);
+              return dataStateObj;
+            } else {
+              return oldData;
+            }
+          } else {
+            // else, then activity was closed, so change arrays
+            const previousClosedActivities = oldData ? oldData.closed : [];
+            const updatingActivity = previousClosedActivities.find(
+              (act) => act.id == updatingId
+            );
+            if (updatingActivity) {
+              updatingActivity.concludedAt = null;
+              const newClosedActivities = previousClosedActivities.filter(
+                (act) => act.id != updatingId
+              );
+              const newOpenActivities = oldData
+                ? [...oldData.open, updatingActivity]
+                : [updatingActivity];
+              const dataStateObj = {
+                open: newOpenActivities,
+                closed: newClosedActivities,
+              };
+              console.log("NOVO SET DE DADOS", dataStateObj);
+              return dataStateObj;
+            } else return oldData;
+          }
+        });
+
+        // Return the previous data so we can revert if something goes wrong
+        return { prevData };
       },
-      onError: async (error) => {
+      onSettled: async (response) => {
+        await trpc.activities.getUserActivities.invalidate();
+        if (response) toast.success(response);
+      },
+      onError: async (error, payload, ctx) => {
+        trpc.activities.getUserActivities.setData("", ctx?.prevData);
         toast.error(
           "Houve um erro na atualizão do status da atividade. Tente novamente mais tarde."
         );

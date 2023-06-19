@@ -22,7 +22,6 @@ function ActivitiesMainPage() {
   } = api.activities.getUserActivities.useQuery(userId ? userId : "");
   const [newActivityModalIsOpen, setNewActivityModalIsOpen] =
     useState<boolean>(false);
-  console.log(activities);
   if (userLoading) return <LoadingPage />;
   return (
     <FullScreenWrapper>

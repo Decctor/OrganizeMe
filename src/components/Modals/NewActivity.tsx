@@ -222,7 +222,7 @@ function NewActivityModal({
                   value={
                     activityHolder.dueDate &&
                     dayjs(activityHolder.dueDate).isValid()
-                      ? dayjs(activityHolder.dueDate).format("YYYY-MM-DDThh:mm")
+                      ? dayjs(activityHolder.dueDate).format("YYYY-MM-DDTHH:mm")
                       : undefined
                   }
                   onChange={(e) => {
