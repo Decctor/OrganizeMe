@@ -4,6 +4,9 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { api } from "~/utils/api";
 import { IUserProps } from "~/utils/types";
+import TextInput from "../Inputs/TextInput";
+import { formatDate } from "~/utils/methods/formatting";
+import NumberInput from "../Inputs/NumberInput";
 type EarningType = {
   description: string;
   value: number;
@@ -59,54 +62,55 @@ function NewEarning({ user }: IUserProps) {
   return (
     <>
       <div className="flex w-full flex-col items-center gap-1">
-        <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
-          DESCRIÇÃO DA GANHO
-        </h1>
-        <input
+        <TextInput
+          label="DESCRIÇÃO"
+          placeholder="Preencha aqui a descrição ou nome do ganho"
           value={earningInfo.description}
-          onChange={(e) =>
-            setEarningInfo({ ...earningInfo, description: e.target.value })
+          handleChange={(value) =>
+            setEarningInfo((prev) => ({ ...prev, description: value }))
           }
-          type="text"
-          className="w-full p-1 text-center text-xs outline-none"
-          placeholder="DESCREVA AQUI O GANHO"
         />
       </div>
-      <div className="flex w-full flex-col items-center gap-1">
-        <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
-          DATA DE RECEBIMENTO
-        </h1>
-        <input
-          value={dayjs(earningInfo.date).format("YYYY-MM-DD")}
-          onChange={(e) =>
-            setEarningInfo({
-              ...earningInfo,
-              date: dayjs(e.target.value).isValid()
-                ? new Date(dayjs(e.target.value).add(4, "hours").toISOString())
-                : new Date(),
-            })
-          }
-          type="date"
-          className="w-full p-1 text-center text-xs outline-none"
-        />
+      <div className="w-full">
+        <div className={`flex w-full flex-col gap-1`}>
+          <label
+            htmlFor={"date"}
+            className={
+              "font-Poppins text-sm font-black tracking-tight text-gray-700"
+            }
+          >
+            DATA DE RECEBIMENTO
+          </label>
+          <input
+            value={formatDate(earningInfo.date)}
+            onChange={(e) =>
+              setEarningInfo((prev) => ({
+                ...prev,
+                date: new Date(e.target.value),
+              }))
+            }
+            onReset={() =>
+              setEarningInfo((prev) => ({
+                ...prev,
+                date: new Date(),
+              }))
+            }
+            id={"date"}
+            type="date"
+            placeholder={"Preencha aqui a data de recebimento do ganho..."}
+            className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
+          />
+        </div>
       </div>
-      <div className="flex w-full flex-col items-center gap-1">
-        <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
-          VALOR RECEBIDO
-        </h1>
-        <input
-          value={earningInfo.value.toString()}
-          onChange={(e) =>
-            setEarningInfo({
-              ...earningInfo,
-              value: Number(e.target.value),
-            })
-          }
-          type="number"
-          className="w-full p-1 text-center text-xs outline-none"
-          placeholder="DESCREVA AQUI O VALOR GASTO"
-        />
-      </div>
+      <NumberInput
+        label="VALOR RECEBIDO"
+        placeholder="Preencha aqui o valor recebido..."
+        value={earningInfo.value}
+        handleChange={(value) =>
+          setEarningInfo((prev) => ({ ...prev, value: value }))
+        }
+        width="100%"
+      />
       <div className="mb-2 flex items-center justify-center">
         <button
           disabled={isLoading}

@@ -4,6 +4,42 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const financesRouter = createTRPCRouter({
+  getUserPaymentMethods: publicProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const userId = input;
+      try {
+        const paymentMethods = await ctx.prisma.methods.findMany({
+          where: {
+            userId: userId,
+          },
+        });
+        return paymentMethods;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erro ao buscar métodos de pagamento do usuário",
+        });
+      }
+    }),
+  getUserExpenseCategories: publicProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const userId = input;
+      try {
+        const expenseCategories = await ctx.prisma.categories.findMany({
+          where: {
+            userId: userId,
+          },
+        });
+        return expenseCategories;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erro ao buscar categorias de gasto do usuário",
+        });
+      }
+    }),
   getUserFinancialBalance: publicProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {

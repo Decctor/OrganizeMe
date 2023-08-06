@@ -6,6 +6,9 @@ const config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        Poppins: ["Poppins", "Arial"],
+      },
       screens: {
         xs: "450px",
         sm: "640px",

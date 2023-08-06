@@ -1,22 +1,20 @@
 import React from "react";
-type TextInputProps = {
+type NumberInputProps = {
   width?: string;
   label: string;
-  labelClassName?: string;
-  value: string;
-  placeholder: string;
+  value: number | null;
   editable?: boolean;
-  handleChange: (value: string) => void;
+  placeholder: string;
+  handleChange: (value: number) => void;
 };
-function TextInput({
+function NumberInput({
   width,
   label,
-  labelClassName,
   value,
-  placeholder,
   editable = true,
+  placeholder,
   handleChange,
-}: TextInputProps) {
+}: NumberInputProps) {
   const inputIdentifier = label.toLowerCase().replace(" ", "_");
   return (
     <div
@@ -24,20 +22,16 @@ function TextInput({
     >
       <label
         htmlFor={inputIdentifier}
-        className={
-          labelClassName
-            ? labelClassName
-            : "font-Poppins text-sm font-black tracking-tighter text-gray-700"
-        }
+        className="font-Poppins text-sm font-black tracking-tighter text-gray-700"
       >
         {label}
       </label>
       <input
-        value={value}
-        onChange={(e) => handleChange(e.target.value)}
-        id={inputIdentifier}
         readOnly={!editable}
-        type="text"
+        value={value ? value.toString() : undefined}
+        onChange={(e) => handleChange(Number(e.target.value))}
+        id={inputIdentifier}
+        type="number"
         placeholder={placeholder}
         className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
       />
@@ -45,4 +39,4 @@ function TextInput({
   );
 }
 
-export default TextInput;
+export default NumberInput;

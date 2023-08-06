@@ -342,92 +342,104 @@ function FinancesMainPage() {
             </p>
           </Link>
         </div>
-        <div className="flex w-full flex-col py-2">
-          <h1 className="mb-3 font-bold text-[#2790b0]">MEUS GANHOS</h1>
-          <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-start">
-            {earnings?.map((earning) => (
-              <div
-                key={earning.id}
-                className="flex max-h-[150px] w-full flex-col rounded border border-gray-200 bg-[#fff] p-4 shadow-md lg:w-[450px]"
-              >
-                <div className="flex items-center justify-between">
-                  <h1 className="font-bold text-[#353432]">
-                    {earning.description}
-                  </h1>
-                  <h1 className="font-bold text-green-500">
-                    + R$ {earning.value.toFixed(2).replace(".", ",")}
-                  </h1>
-                </div>
-                <div className="flex items-center justify-end text-xs">
-                  <h1 className="text-[##4e4d4a]">
-                    {new Date(earning.date).toLocaleDateString()}
-                  </h1>
-                </div>
-                <div className="mt-2 flex items-center justify-end">
-                  {/* <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
+        <div className="grid w-full grid-cols-2 gap-[0.1rem] bg-gray-300">
+          <div className="flex w-full flex-col bg-[#f8f9fa] px-2 py-2">
+            <h1 className="mb-3 text-center font-bold text-[#2790b0]">
+              MEUS GANHOS
+            </h1>
+            <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-start">
+              {earnings?.map((earning) => (
+                <div
+                  key={earning.id}
+                  className="flex h-[100px] w-full flex-col rounded border border-gray-200 bg-[#fff] p-3 shadow-lg lg:w-[250px]"
+                >
+                  <div className="flex w-full grow flex-col">
+                    <div className="flex items-center justify-between">
+                      <h1 className="text-xs font-bold text-[#353432]">
+                        {earning.description}
+                      </h1>
+                      <h1 className="text-xs font-bold text-green-500">
+                        + R$ {earning.value.toFixed(2).replace(".", ",")}
+                      </h1>
+                    </div>
+                    <div className="flex items-center justify-end text-xs">
+                      <h1 className="text-[##4e4d4a]">
+                        {new Date(earning.date).toLocaleDateString()}
+                      </h1>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-end">
+                    {/* <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
                     <FaEdit />
                   </button> */}
-                  <button
-                    onClick={() => deleteEarning(earning.id)}
-                    className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
-                  >
-                    <MdDelete />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex w-full flex-col  py-2 ">
-          <h1 className="mb-3 font-bold text-[#ff0054]">MEUS GASTOS</h1>
-          <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-start">
-            {expenses &&
-              expenses?.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex max-h-[150px] w-full flex-col rounded border border-gray-200 bg-[#fff] p-4 shadow-lg lg:w-[450px]"
-                >
-                  <div className="flex items-center justify-between">
-                    <h1 className="font-bold text-[#353432]">
-                      {expense.description}
-                    </h1>
-                    <h1 className="font-bold text-red-500">
-                      - R${" "}
-                      {expense.installments && expense.installmentIdentifier
-                        ? formatTextValueWithInstallments(
-                            expense.value,
-                            expense.installments,
-                            expense.installmentIdentifier
-                          )
-                        : expense.value.toFixed(2).replace(".", ",")}
-                    </h1>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <h1 className="font-medium text-[#2790b0]">
-                      {expense.category}
-                    </h1>
-                    <h1 className="break-all text-[##4e4d4a]">
-                      {new Date(expense.purchaseDate).toLocaleDateString()}
-                    </h1>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <h1 className="text-xs font-medium text-[#4e4d4a]">
-                      {expense.method}
-                    </h1>
-                    <div className="items-centert flex gap-3 lg:gap-1">
-                      {/* <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
-                        <FaEdit />
-                      </button> */}
-                      <button
-                        onClick={() => deleteExpense(expense.id)}
-                        className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
-                      >
-                        <MdDelete />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => deleteEarning(earning.id)}
+                      className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
+                    >
+                      <MdDelete />
+                    </button>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+          <div className="flex w-full flex-col  bg-[#f8f9fa] px-2 py-2">
+            <h1 className="mb-3 text-center font-bold text-[#ff0054]">
+              MEUS GASTOS
+            </h1>
+            <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-between">
+              {expenses &&
+                expenses?.map((expense) => (
+                  <div
+                    key={expense.id}
+                    className="flex max-h-[150px] min-h-[100px] w-full flex-col rounded border border-gray-200 bg-[#fff] p-3 shadow-lg lg:w-[250px]"
+                  >
+                    <div className="flex w-full grow flex-col">
+                      <div className="flex items-center justify-between gap-1">
+                        <h1 className="text-xs font-bold text-[#353432]">
+                          {expense.description}
+                        </h1>
+                        <h1 className="text-xs font-bold text-red-500">
+                          - R${" "}
+                          {expense.installments && expense.installmentIdentifier
+                            ? formatTextValueWithInstallments(
+                                expense.value,
+                                expense.installments,
+                                expense.installmentIdentifier
+                              )
+                            : expense.value.toFixed(2).replace(".", ",")}
+                        </h1>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between">
+                        <h1 className="text-[0.6rem] font-medium italic text-[#2790b0]">
+                          {expense.category}
+                        </h1>
+                        <h1 className="break-all text-[0.6rem] text-[##4e4d4a]">
+                          {new Date(expense.purchaseDate).toLocaleDateString()}
+                        </h1>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between">
+                      <h1 className="text-xs font-medium text-[#4e4d4a] ">
+                        {expense.method}
+                      </h1>
+                      <div className="items-centert flex gap-3 lg:gap-1">
+                        {/* <button className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500">
+                        <FaEdit />
+                      </button> */}
+                        <button
+                          onClick={() => deleteExpense(expense.id)}
+                          className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
+                        >
+                          <MdDelete />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
 
@@ -438,7 +450,7 @@ function FinancesMainPage() {
           <IoMdAdd />
         </div> */}
       </div>
-      {newFinancialMovementModalIsOpen && user ? (
+      {newFinancialMovementModalIsOpen.state && user ? (
         <NewFinancialMove
           user={user}
           modalIsOpen={newFinancialMovementModalIsOpen.state}

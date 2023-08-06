@@ -8,12 +8,17 @@ import { z } from "zod";
 import { api } from "~/utils/api";
 import dayjs from "dayjs";
 import { AiOutlineClose } from "react-icons/ai";
+import TextInput from "../Inputs/TextInput";
+import { formatDate } from "~/utils/methods/formatting";
+import SelectInput from "../Inputs/SelectInput";
+import NumberInput from "../Inputs/NumberInput";
 type ExpenseType = {
   description: string;
-  category: string;
-  method: string;
+  category: string | null;
+  method: string | null;
   value: number;
   purchaseDate: Date;
+  paymentDate: Date;
   installments: null | number;
 };
 type InsertExpenseObj = {
@@ -53,12 +58,19 @@ const expenseInput = z.object({
 });
 function NewExpense({ user, setUserInfo }: IUserProps & any) {
   const trpc = api.useContext();
+
+  const { data: paymentMethods } = api.finances.getUserPaymentMethods.useQuery(
+    user.id
+  );
+  const { data: expenseCategories } =
+    api.finances.getUserExpenseCategories.useQuery(user.id);
   const [expenseInfo, setExpenseInfo] = useState<ExpenseType>({
     description: "",
-    category: "NÃO DEFINIDO",
-    method: "NÃO DEFINIDO",
+    category: null,
+    method: null,
     value: 0,
     purchaseDate: new Date(),
+    paymentDate: new Date(),
     installments: null,
   });
   const [aditionalInfo, setAditionalInfo] = useState({
@@ -74,10 +86,11 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
         try {
           setExpenseInfo({
             description: "",
-            category: "NÃO DEFINIDO",
-            method: "NÃO DEFINIDO",
+            category: null,
+            method: null,
             value: 0,
             purchaseDate: new Date(),
+            paymentDate: new Date(),
             installments: null,
           });
           toast.success("Gasto adicionado !");
@@ -98,10 +111,11 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           await trpc.finances.getUserFinancialBalance.invalidate();
           setExpenseInfo({
             description: "",
-            category: "NÃO DEFINIDO",
-            method: "NÃO DEFINIDO",
+            category: null,
+            method: null,
             value: 0,
             purchaseDate: new Date(),
+            paymentDate: new Date(),
             installments: null,
           });
           toast.success("Gastos adicionado !");
@@ -111,34 +125,70 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
       },
     });
 
-  // User expense categories and methods creation
+  // User expense categories and payment methods creation
   const { mutate: createCategory } = api.finances.createCategory.useMutation({
-    onSuccess(data, variables, context) {
-      trpc.users.getUser.invalidate();
-      if (newCategoryVisible) setNewCategoryVisible(false);
-      toast.success("Categoria criada !");
-      trpc.users.getUser.invalidate();
-      return;
+    onMutate: async (newCategory) => {
+      await trpc.finances.getUserExpenseCategories.cancel();
+      const previousCategories =
+        await trpc.finances.getUserExpenseCategories.getData();
+      trpc.finances.getUserExpenseCategories.setData(user.id, (old) => {
+        console.log("OLD CATEGORIES", old);
+        if (old) return [...old, { ...newCategory, id: -1 }];
+        else return [{ ...newCategory, id: -1 }];
+      });
+      toast.success("Categoria criada com sucesso! ");
+      setNewCategoryVisible(false);
+      return { previousCategories };
+    },
+    onError(err, newCategory, ctx) {
+      // If the mutation fails, use the context-value from onMutate
+      trpc.finances.getUserExpenseCategories.setData(
+        user.id,
+        ctx?.previousCategories
+      );
+      toast.error("Oops, algo deu errado na criação de uma nova categoria.");
+    },
+    onSettled() {
+      trpc.finances.getUserExpenseCategories.invalidate();
     },
   });
   const { mutate: createMethod } = api.finances.createMethod.useMutation({
-    onSuccess(data, variables, context) {
-      trpc.users.getUser.invalidate();
-      if (newMethodVisible) setNewMethodVisible(false);
-      toast.success("Método de pagamento criado !");
-      trpc.users.getUser.invalidate();
-      return;
+    onMutate: async (newMethod) => {
+      await trpc.finances.getUserPaymentMethods.cancel();
+      const previousMethods =
+        await trpc.finances.getUserPaymentMethods.getData();
+      trpc.finances.getUserPaymentMethods.setData(user.id, (old) => {
+        console.log("OLD METHODS", old);
+        if (old) return [...old, { ...newMethod, id: -1 }];
+        else return [{ ...newMethod, id: -1 }];
+      });
+      toast.success("Método de pagamento criado com sucesso! ");
+      setNewMethodVisible(false);
+      return { previousMethods };
+    },
+    onError(err, newMethod, ctx) {
+      // If the mutation fails, use the context-value from onMutate
+      trpc.finances.getUserPaymentMethods.setData(
+        user.id,
+        ctx?.previousMethods
+      );
+      toast.error(
+        "Oops, algo deu errado na criação de uma novo método de pagamento."
+      );
+    },
+    onSettled() {
+      trpc.finances.getUserPaymentMethods.invalidate();
     },
   });
 
   // Handler
   async function handleExpenseAdd() {
     const result = await expenseInput.safeParseAsync(expenseInfo);
-    if (expenseInfo.category == "NÃO DEFINIDO") {
+    if (!expenseInfo.category) {
       toast.error("Categoria não pode ser NÃO DEFINIDO");
       return;
     }
-    if (expenseInfo.method == "NÃO DEFINIDO") {
+    if (!expenseInfo.method) {
       toast.error("Método de pagamento não pode ser NÃO DEFINIDO");
       return;
     }
@@ -176,15 +226,10 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
         if (user) createManyExpenses(arrObjs);
       } else {
         // For expenses with no installments, create individual document
-        if (user)
-          console.log("EXPENSE INDIVIDUAL", {
-            ...expenseInfo,
-            paymentDate: expenseInfo.purchaseDate,
-            userId: user.id,
-          });
         createExpense({
           ...expenseInfo,
-          paymentDate: expenseInfo.purchaseDate,
+          category: expenseInfo.category as string,
+          method: expenseInfo.method as string,
           userId: user.id,
         });
       }
@@ -203,149 +248,174 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex w-full flex-col items-center">
-        <h1 className="w-full  text-center font-[Roboto] text-lg font-bold text-[#353432]">
-          DESCRIÇÃO DO GASTO
-        </h1>
-        <input
-          value={expenseInfo.description}
-          onChange={(e) =>
-            setExpenseInfo({ ...expenseInfo, description: e.target.value })
-          }
-          type="text"
-          className="w-full p-2 text-center text-xs outline-none"
-          placeholder="DESCREVA AQUI O GASTO"
-        />
-      </div>
-      <div className="flex w-full flex-col items-center gap-1">
-        <div className="flex w-full items-center justify-center gap-2">
-          <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
-            CATEGORIA DO GASTO
-          </h1>
-          {newCategoryVisible ? (
-            <AiOutlineClose
-              onClick={() => setNewCategoryVisible(false)}
-              style={{ color: "rgb(239,68,68)", cursor: "pointer" }}
-            />
-          ) : (
-            <IoMdAddCircle
-              onClick={() => setNewCategoryVisible(true)}
-              style={{ color: "rgb(34,197,94)", cursor: "pointer" }}
-            />
-          )}
+    <div className="flex w-full flex-col gap-3 overflow-x-hidden">
+      <div className="flex w-full flex-col items-center gap-2 lg:flex-row">
+        <div className="w-full lg:w-[50%]">
+          <TextInput
+            label="DESCRIÇÃO"
+            placeholder="Descreva ou nomeie aqui o gasto..."
+            value={expenseInfo.description}
+            handleChange={(value) =>
+              setExpenseInfo((prev) => ({ ...prev, description: value }))
+            }
+          />
         </div>
-        {newCategoryVisible ? (
-          <NewCategory handleCreateCategory={handleCreateCategory} />
-        ) : (
-          <div className="flex w-full items-center gap-2">
-            {user?.categories && user?.categories?.length > 0 ? (
-              <select
-                value={expenseInfo.category}
-                onChange={(e) =>
-                  setExpenseInfo({
-                    ...expenseInfo,
-                    category: e.target.value,
+        <div className="w-full lg:w-[50%]">
+          <div className={`flex w-full flex-col gap-1`}>
+            <label
+              htmlFor={"purchaseDate"}
+              className={
+                "font-Poppins text-sm font-black tracking-tight text-gray-700"
+              }
+            >
+              DATA DE COMPRA
+            </label>
+            <input
+              value={formatDate(expenseInfo.purchaseDate)}
+              onChange={(e) =>
+                setExpenseInfo((prev) => ({
+                  ...prev,
+                  purchaseDate: new Date(e.target.value),
+                }))
+              }
+              onReset={() =>
+                setExpenseInfo((prev) => ({
+                  ...prev,
+                  purchaseDate: new Date(),
+                }))
+              }
+              id={"purchaseDate"}
+              type="date"
+              placeholder={"Preencha aqui a data de compra..."}
+              className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="flex w-full flex-col items-center gap-2 lg:flex-row">
+        <div className="flex w-full flex-col gap-1 lg:w-[50%]">
+          <SelectInput
+            label="CATEGORIA"
+            value={expenseInfo.category}
+            options={
+              expenseCategories
+                ? expenseCategories.map((category) => {
+                    return {
+                      id: category.id,
+                      label: category.name,
+                      value: category.name,
+                    };
                   })
-                }
-                className="grow bg-transparent p-2 text-center text-xs outline-none"
-              >
-                {user.categories.map((category: { name: string }) => (
-                  <option key={category.name} value={category.name}>
-                    {category.name}
-                  </option>
-                ))}
-                <option value={"NÃO DEFINIDO"}>NÃO DEFINIDO</option>
-              </select>
-            ) : (
-              <p className="grow text-center text-xs italic text-gray-500">
-                Sem categorias cadastradas
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="flex w-full flex-col items-center gap-1">
-        <div className="flex items-center justify-center gap-2">
-          <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
-            MÉTODO DE PAGAMENTO
-          </h1>
-          {newMethodVisible ? (
-            <AiOutlineClose
-              onClick={() => setNewMethodVisible(false)}
-              style={{ color: "rgb(239,68,68)", cursor: "pointer" }}
+                : []
+            }
+            handleChange={(value) =>
+              setExpenseInfo((prev) => ({ ...prev, category: value }))
+            }
+            selectedItemLabel="NÃO DEFINIDO"
+            width="100%"
+            onReset={() =>
+              setExpenseInfo((prev) => ({ ...prev, category: null }))
+            }
+          />
+          {newCategoryVisible ? (
+            <NewCategory
+              handleCreateCategory={handleCreateCategory}
+              closeMenu={() => setNewCategoryVisible(false)}
             />
           ) : (
-            <IoMdAddCircle
-              onClick={() => setNewMethodVisible(true)}
-              style={{ color: "rgb(34,197,94)", cursor: "pointer" }}
-            />
+            <p
+              onClick={() => setNewCategoryVisible(true)}
+              className="w-full cursor-pointer text-center text-sm italic text-green-400 duration-500 ease-in-out hover:scale-105"
+            >
+              Adicionar nova categoria de gastos
+            </p>
           )}
         </div>
-        {newMethodVisible ? (
-          <NewMethod handleCreateMethod={handleCreateMethod} />
-        ) : (
-          <div className="flex w-full items-center gap-2">
-            {user?.methods && user?.methods?.length > 0 ? (
-              <select
-                value={expenseInfo.method}
-                onChange={(e) =>
-                  setExpenseInfo({ ...expenseInfo, method: e.target.value })
-                }
-                className="grow bg-transparent p-2 text-center text-xs outline-none"
-              >
-                {user.methods.map((method: { name: string }) => (
-                  <option key={method.name} value={method.name}>
-                    {method.name}
-                  </option>
-                ))}
-                <option value={"NÃO DEFINIDO"}>NÃO DEFINIDO</option>
-              </select>
-            ) : (
-              <p className="grow text-center text-xs italic text-gray-500">
-                Sem métodos de pagamento adicionados
-              </p>
-            )}
+        <div className="flex w-full flex-col gap-1 lg:w-[50%]">
+          <SelectInput
+            label="MÉTODO"
+            value={expenseInfo.method}
+            options={
+              paymentMethods
+                ? paymentMethods.map((method) => {
+                    return {
+                      id: method.id,
+                      label: method.name,
+                      value: method.name,
+                    };
+                  })
+                : []
+            }
+            handleChange={(value) =>
+              setExpenseInfo((prev) => ({ ...prev, method: value }))
+            }
+            selectedItemLabel="NÃO DEFINIDO"
+            width="100%"
+            onReset={() =>
+              setExpenseInfo((prev) => ({ ...prev, method: null }))
+            }
+          />
+          {newMethodVisible ? (
+            <NewMethod
+              handleCreateMethod={handleCreateMethod}
+              closeMenu={() => setNewMethodVisible(false)}
+            />
+          ) : (
+            <p
+              onClick={() => setNewMethodVisible(true)}
+              className="w-full cursor-pointer text-center text-sm italic text-green-400 duration-500 ease-in-out hover:scale-105"
+            >
+              Adicionar novo método de pagamento
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex w-full flex-col items-center gap-2 lg:flex-row">
+        <div className="w-full lg:w-[50%]">
+          <NumberInput
+            label="VALOR DO GASTO"
+            placeholder="Preencha aqui o valor cheio do gasto..."
+            value={expenseInfo.value}
+            handleChange={(value) =>
+              setExpenseInfo((prev) => ({ ...prev, value: value }))
+            }
+            width="100%"
+          />
+        </div>
+        <div className="w-full lg:w-[50%]">
+          <div className={`flex w-full flex-col gap-1`}>
+            <label
+              htmlFor={"paymentDate"}
+              className={
+                "font-Poppins text-sm font-black tracking-tight text-gray-700"
+              }
+            >
+              DATA DE PAGAMENTO
+            </label>
+            <input
+              value={formatDate(expenseInfo.purchaseDate)}
+              onChange={(e) =>
+                setExpenseInfo((prev) => ({
+                  ...prev,
+                  purchaseDate: new Date(e.target.value),
+                }))
+              }
+              onReset={() =>
+                setExpenseInfo((prev) => ({
+                  ...prev,
+                  purchaseDate: new Date(),
+                }))
+              }
+              id={"purchaseDate"}
+              type="date"
+              placeholder={"Preencha aqui a data de compra..."}
+              className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
+            />
           </div>
-        )}
+        </div>
       </div>
       <div className="flex w-full flex-col items-center gap-1">
-        <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
-          DATA DE COMPRA
-        </h1>
-        <input
-          value={dayjs(expenseInfo.purchaseDate).format("YYYY-MM-DD")}
-          onChange={(e) =>
-            setExpenseInfo({
-              ...expenseInfo,
-              purchaseDate: dayjs(e.target.value).isValid()
-                ? new Date(dayjs(e.target.value).add(4, "hours").toISOString())
-                : new Date(),
-            })
-          }
-          type="date"
-          className="w-full grow bg-transparent p-2 text-center text-xs outline-none"
-        />
-      </div>
-      <div className="flex w-full flex-col items-center gap-1">
-        <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
-          VALOR GASTO
-        </h1>
-        <input
-          value={expenseInfo.value.toString()}
-          onChange={(e) =>
-            setExpenseInfo({
-              ...expenseInfo,
-              value: Number(e.target.value),
-            })
-          }
-          type="number"
-          className="w-full grow bg-transparent p-2 text-center text-xs outline-none"
-          placeholder="DESCREVA AQUI O VALOR GASTO"
-        />
-      </div>
-      <div className="flex w-full flex-col items-center gap-1">
-        <h1 className="text-center font-[Roboto] text-lg font-bold text-[#353432]">
+        <h1 className="font-Poppins text-sm font-black tracking-tight text-gray-700">
           PARCELAMENTO
         </h1>
         <div className="flex-box flex w-full">

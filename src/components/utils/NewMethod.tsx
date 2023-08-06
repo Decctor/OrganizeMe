@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
+import { VscChromeClose } from "react-icons/vsc";
 import { Methods } from "~/utils/types";
 function NewMethod({
   handleCreateMethod,
+  closeMenu,
 }: {
   handleCreateMethod: (name: string) => void;
+  closeMenu: () => void;
 }) {
   const [methodInfo, setMethodInfo] = useState<Methods>({
     name: "",
@@ -17,14 +20,24 @@ function NewMethod({
         className="grow p-1 text-center text-xs outline-none"
         placeholder="NOME DO MÉTODO PARA ADICIONAR"
       />
-      <button
-        onClick={() => {
-          handleCreateMethod(methodInfo.name);
-        }}
-        className="text-md text-green-500"
-      >
-        <IoMdAdd />
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => {
+            handleCreateMethod(methodInfo.name);
+          }}
+          className="text-md text-green-500"
+        >
+          <IoMdAdd />
+        </button>
+        <button
+          onClick={() => {
+            closeMenu();
+          }}
+          className="text-md text-red-500"
+        >
+          <VscChromeClose />
+        </button>
+      </div>
     </div>
   );
 }
