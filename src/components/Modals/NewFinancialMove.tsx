@@ -59,60 +59,46 @@ function NewFinancialMove({
           initial="hidden"
           animate="visible"
           className={
-            "fixed left-[50%] top-[50%] z-[1000] h-fit max-h-[90%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:h-[60%] lg:w-[60%]"
+            "fixed left-[50%] top-[50%] z-[1000] flex h-fit max-h-[90%] w-[90%] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg bg-[#fff] p-3 lg:h-[60%] lg:w-[60%]"
           }
-          // style={{
-          //   position: "fixed",
-          //   top: "50%",
-          //   left: "50%",
-          //   transform: "translate(-50%,-50%)",
-          //   backgroundColor: "#fff",
-          //   minWidth: width ? width : "93%",
-          //   height: height ? height : "98%",
-          //   borderRadius: "10px",
-          //   padding: "10px",
-          //   zIndex: 1000,
-          // }}
         >
-          <div className="flex h-full w-full flex-col">
-            <div className="flex items-center justify-between border-b border-gray-200 p-2">
-              <h1 className="text-sm font-bold text-[#2b4e72]">
-                NOVA MOVIMENTAÇÃO FINANCEIRA
-              </h1>
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  onClick={(e) => closeModal()}
-                  className="flex items-center justify-center transition duration-300 ease-in-out hover:scale-125"
-                >
-                  <VscChromeClose style={{ color: "red" }} />
-                </button>
-              </div>
+          <div className="flex w-full items-center justify-between border-b border-gray-200 p-2">
+            <h1 className="text-sm font-bold text-[#2b4e72]">
+              NOVA MOVIMENTAÇÃO FINANCEIRA
+            </h1>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={(e) => closeModal()}
+                className="flex items-center justify-center transition duration-300 ease-in-out hover:scale-125"
+              >
+                <VscChromeClose style={{ color: "red" }} />
+              </button>
             </div>
-            <div className="overscroll-y my-2  flex grow flex-col gap-2 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300">
-              <div className="flex items-center justify-center gap-2  p-2">
-                <h1
-                  onClick={() => setMoveType("ENTRADA")}
-                  className={`cursor-pointer rounded bg-[#2790b0]  p-1 font-bold text-white ${
-                    moveType == "ENTRADA" ? "opacity-100" : "opacity-40"
-                  }`}
-                >
-                  ENTRADA
-                </h1>
-                <h1
-                  onClick={() => setMoveType("SAÍDA")}
-                  className={`cursor-pointer rounded  bg-[#ff0054] p-1 font-bold text-white  ${
-                    moveType == "SAÍDA" ? "opacity-100" : "opacity-30"
-                  }`}
-                >
-                  SAÍDA
-                </h1>
-              </div>
-              <div className="flex w-full grow flex-col">
-                {moveType == "ENTRADA" ? <NewEarning user={userInfo} /> : null}
-                {moveType == "SAÍDA" ? (
-                  <NewExpense user={userInfo} setUserInfo={setUserInfo} />
-                ) : null}
-              </div>
+          </div>
+          <div className="overscroll-y flex w-full flex-1 flex-col gap-2 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300">
+            <div className="flex items-center justify-center gap-2  p-2">
+              <h1
+                onClick={() => setMoveType("ENTRADA")}
+                className={`cursor-pointer rounded bg-[#2790b0]  p-1 font-bold text-white ${
+                  moveType == "ENTRADA" ? "opacity-100" : "opacity-40"
+                }`}
+              >
+                ENTRADA
+              </h1>
+              <h1
+                onClick={() => setMoveType("SAÍDA")}
+                className={`cursor-pointer rounded  bg-[#ff0054] p-1 font-bold text-white  ${
+                  moveType == "SAÍDA" ? "opacity-100" : "opacity-30"
+                }`}
+              >
+                SAÍDA
+              </h1>
+            </div>
+            <div className="my-2 flex w-full grow flex-col">
+              {moveType == "ENTRADA" ? <NewEarning user={userInfo} /> : null}
+              {moveType == "SAÍDA" ? (
+                <NewExpense user={userInfo} setUserInfo={setUserInfo} />
+              ) : null}
             </div>
           </div>
         </motion.div>
