@@ -60,7 +60,7 @@ function NewEarning({ user }: IUserProps) {
     }
   }
   return (
-    <>
+    <div className="flex w-full flex-col gap-3 overflow-x-hidden">
       <div className="flex w-full flex-col items-center gap-1">
         <TextInput
           label="DESCRIÇÃO"
@@ -120,7 +120,7 @@ function NewEarning({ user }: IUserProps) {
           {isLoading ? "CARREGANDO" : "ADICIONAR GANHO"}
         </button>
       </div>
-    </>
+    </div>
   );
 }
 

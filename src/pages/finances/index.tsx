@@ -342,12 +342,19 @@ function FinancesMainPage() {
             </p>
           </Link>
         </div>
-        <div className="grid w-full grid-cols-2 gap-[0.1rem] bg-gray-300">
-          <div className="flex w-full flex-col bg-[#f8f9fa] px-2 py-2">
+        <div className="flex flex-col gap-[0.1rem] lg:flex-row">
+          <div className="flex w-full flex-col px-2 py-2 ">
             <h1 className="mb-3 text-center font-bold text-[#2790b0]">
               MEUS GANHOS
             </h1>
             <div className="flex grow flex-col flex-wrap gap-3 lg:flex-row lg:justify-start">
+              {earnings?.length == 0 ? (
+                <div className="flex w-full items-center justify-center">
+                  <p className="text-center italic text-gray-600">
+                    Não há registros de ganho vinculados a esse mês
+                  </p>
+                </div>
+              ) : null}
               {earnings?.map((earning) => (
                 <div
                   key={earning.id}
@@ -384,7 +391,8 @@ function FinancesMainPage() {
               ))}
             </div>
           </div>
-          <div className="flex w-full flex-col  bg-[#f8f9fa] px-2 py-2">
+          <div className="h-[1px] w-full bg-gray-300 lg:w-[1px] lg:grow"></div>
+          <div className="flex w-full flex-col  px-2 py-2 ">
             <h1 className="mb-3 text-center font-bold text-[#ff0054]">
               MEUS GASTOS
             </h1>

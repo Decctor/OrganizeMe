@@ -59,7 +59,7 @@ function NewFinancialMove({
           initial="hidden"
           animate="visible"
           className={
-            "fixed left-[50%] top-[50%] z-[1000] h-[90%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:h-[60%] lg:w-[60%]"
+            "fixed left-[50%] top-[50%] z-[1000] h-fit max-h-[90%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[#fff] p-3 lg:h-[60%] lg:w-[60%]"
           }
           // style={{
           //   position: "fixed",
@@ -91,20 +91,20 @@ function NewFinancialMove({
             <div className="overscroll-y my-2  flex grow flex-col gap-2 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300">
               <div className="flex items-center justify-center gap-2  p-2">
                 <h1
-                  onClick={() => setMoveType("SAÍDA")}
-                  className={`cursor-pointer rounded  bg-[#ff0054] p-1 font-bold text-white  ${
-                    moveType == "SAÍDA" ? "opacity-100" : "opacity-30"
-                  }`}
-                >
-                  SAÍDA
-                </h1>
-                <h1
                   onClick={() => setMoveType("ENTRADA")}
                   className={`cursor-pointer rounded bg-[#2790b0]  p-1 font-bold text-white ${
                     moveType == "ENTRADA" ? "opacity-100" : "opacity-40"
                   }`}
                 >
                   ENTRADA
+                </h1>
+                <h1
+                  onClick={() => setMoveType("SAÍDA")}
+                  className={`cursor-pointer rounded  bg-[#ff0054] p-1 font-bold text-white  ${
+                    moveType == "SAÍDA" ? "opacity-100" : "opacity-30"
+                  }`}
+                >
+                  SAÍDA
                 </h1>
               </div>
               <div className="flex w-full grow flex-col">
