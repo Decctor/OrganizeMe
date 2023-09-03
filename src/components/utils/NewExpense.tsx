@@ -104,6 +104,7 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
       },
       onSettled: async () => {
         await trpc.finances.getMonthExpenses.invalidate();
+        await trpc.finances.getUserFinancialBalance.invalidate();
       },
     });
   const { mutate: createManyExpenses } =

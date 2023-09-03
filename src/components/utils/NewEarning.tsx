@@ -7,10 +7,11 @@ import { IUserProps } from "~/utils/types";
 import TextInput from "../Inputs/TextInput";
 import { formatDate } from "~/utils/methods/formatting";
 import NumberInput from "../Inputs/NumberInput";
+import DateInput from "../Inputs/DateInput";
 type EarningType = {
   description: string;
   value: number;
-  date: Date;
+  date: Date | string;
 };
 const earningInput = z.object({
   description: z
@@ -39,11 +40,15 @@ function NewEarning({ user }: IUserProps) {
           });
           toast.success("Entrada adicionada !");
           await trpc.users.getUser.invalidate();
-          await trpc.finances.getMonthEarnings.invalidate();
-          await trpc.finances.getUserFinancialBalance.invalidate();
+          await trpc.finances.getMonthEarnings.cancel();
+          await trpc.finances.getUserFinancialBalance.cancel();
         } catch (error) {
           toast.error("Erro na invalidação de queries.");
         }
+      },
+      onSettled: async () => {
+        await trpc.finances.getMonthEarnings.invalidate();
+        await trpc.finances.getUserFinancialBalance.invalidate();
       },
     });
   async function handleEarningAdd() {
@@ -56,7 +61,12 @@ function NewEarning({ user }: IUserProps) {
           : "Erro no formulário"
       );
     } else {
-      if (user) createEarning({ ...earningInfo, userId: user.id });
+      if (user)
+        createEarning({
+          ...earningInfo,
+          userId: user.id,
+          date: new Date(earningInfo.date),
+        });
     }
   }
   return (
@@ -72,7 +82,23 @@ function NewEarning({ user }: IUserProps) {
         />
       </div>
       <div className="w-full">
-        <div className={`flex w-full flex-col gap-1`}>
+        <DateInput
+          value={earningInfo.date ? formatDate(earningInfo.date) : undefined}
+          showLabel={true}
+          label="DATA DE RECEBIMENTO"
+          editable={true}
+          labelClassName="font-Poppins text-sm font-black tracking-tight text-gray-700"
+          handleChange={(value) =>
+            setEarningInfo((prev) => ({
+              ...prev,
+              date: value
+                ? new Date(value).toISOString()
+                : new Date().toISOString(),
+            }))
+          }
+          width="100%"
+        />
+        {/* <div className={`flex w-full flex-col gap-1`}>
           <label
             htmlFor={"date"}
             className={
@@ -100,7 +126,7 @@ function NewEarning({ user }: IUserProps) {
             placeholder={"Preencha aqui a data de recebimento do ganho..."}
             className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
           />
-        </div>
+        </div> */}
       </div>
       <NumberInput
         label="VALOR RECEBIDO"
