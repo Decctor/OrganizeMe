@@ -15,6 +15,7 @@ import NewCategory from "../utils/NewCategory";
 import NumberInput from "../Inputs/NumberInput";
 import NewMethod from "../utils/NewMethod";
 import toast from "react-hot-toast";
+import DateInput from "../Inputs/DateInput";
 type EditExpenseProps = {
   closeModal: () => void;
   expense: Expenses;
@@ -156,36 +157,26 @@ function EditExpense({ closeModal, expense, userId }: EditExpenseProps) {
                 />
               </div>
               <div className="w-full lg:w-[50%]">
-                <div className={`flex w-full flex-col gap-1`}>
-                  <label
-                    htmlFor={"purchaseDate"}
-                    className={
-                      "font-Poppins text-sm font-black tracking-tight text-gray-700"
-                    }
-                  >
-                    DATA DE COMPRA
-                  </label>
-                  <input
-                    value={formatDate(infoHolder.purchaseDate)}
-                    onChange={(e) =>
-                      setInfoHolder((prev) => ({
-                        ...prev,
-                        purchaseDate:
-                          e.target.value != "" ? e.target.value : null,
-                      }))
-                    }
-                    onReset={() =>
-                      setInfoHolder((prev) => ({
-                        ...prev,
-                        purchaseDate: new Date(),
-                      }))
-                    }
-                    id={"purchaseDate"}
-                    type="date"
-                    placeholder={"Preencha aqui a data de compra..."}
-                    className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
-                  />
-                </div>
+                <DateInput
+                  value={
+                    infoHolder.purchaseDate
+                      ? formatDate(infoHolder.purchaseDate)
+                      : undefined
+                  }
+                  showLabel={true}
+                  label="DATA DE COMPRA"
+                  editable={true}
+                  labelClassName="font-Poppins text-sm font-black tracking-tight text-gray-700"
+                  handleChange={(value) =>
+                    setInfoHolder((prev) => ({
+                      ...prev,
+                      purchaseDate: value
+                        ? new Date(value).toISOString()
+                        : new Date().toISOString(),
+                    }))
+                  }
+                  width="100%"
+                />
               </div>
             </div>
             <div className="flex w-full flex-col items-center gap-2 lg:flex-row">
@@ -279,35 +270,26 @@ function EditExpense({ closeModal, expense, userId }: EditExpenseProps) {
                 />
               </div>
               <div className="w-full lg:w-[50%]">
-                <div className={`flex w-full flex-col gap-1`}>
-                  <label
-                    htmlFor={"paymentDate"}
-                    className={
-                      "font-Poppins text-sm font-black tracking-tight text-gray-700"
-                    }
-                  >
-                    DATA DE PAGAMENTO
-                  </label>
-                  <input
-                    value={formatDate(infoHolder.paymentDate)}
-                    onChange={(e) =>
-                      setInfoHolder((prev) => ({
-                        ...prev,
-                        paymentDate: new Date(e.target.value),
-                      }))
-                    }
-                    onReset={() =>
-                      setInfoHolder((prev) => ({
-                        ...prev,
-                        paymentDate: new Date(),
-                      }))
-                    }
-                    id={"paymentDate"}
-                    type="date"
-                    placeholder={"Preencha aqui a data de compra..."}
-                    className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
-                  />
-                </div>
+                <DateInput
+                  value={
+                    infoHolder.paymentDate
+                      ? formatDate(infoHolder.paymentDate)
+                      : undefined
+                  }
+                  showLabel={true}
+                  label="DATA DE PAGAMENTO"
+                  editable={true}
+                  labelClassName="font-Poppins text-sm font-black tracking-tight text-gray-700"
+                  handleChange={(value) =>
+                    setInfoHolder((prev) => ({
+                      ...prev,
+                      paymentDate: value
+                        ? new Date(value).toISOString()
+                        : new Date().toISOString(),
+                    }))
+                  }
+                  width="100%"
+                />
               </div>
             </div>
             <div className="flex w-full flex-col items-center gap-1">
@@ -384,7 +366,13 @@ function EditExpense({ closeModal, expense, userId }: EditExpenseProps) {
               <div className="flex w-full items-center justify-center">
                 <button
                   disabled={changesLoading}
-                  onClick={() => saveChanges(infoHolder)}
+                  onClick={() =>
+                    saveChanges({
+                      ...infoHolder,
+                      purchaseDate: new Date(infoHolder.purchaseDate),
+                      paymentDate: new Date(infoHolder.paymentDate),
+                    })
+                  }
                   className="rounded border border-[#2b4e72] p-2  text-sm font-bold text-[#2b4e72] duration-300 ease-in-out disabled:border-gray-400 disabled:bg-gray-400 disabled:text-white  enabled:hover:scale-105 enabled:hover:bg-[#2b4e72] enabled:hover:text-white"
                 >
                   {changesLoading ? "CARREGANDO" : "SALVAR ALTERAÇÕES"}

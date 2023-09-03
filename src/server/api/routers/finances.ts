@@ -216,7 +216,7 @@ export const financesRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const { date } = input;
-      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 0, 21);
       const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       try {
         const firstFisterItems = await ctx.prisma.expenses.findMany({
