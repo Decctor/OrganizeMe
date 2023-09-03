@@ -469,7 +469,11 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
               NÚMERO DE PARCELAS
             </h1>
             <input
-              value={expenseInfo.installments.toString()}
+              value={
+                !isEmpty(expenseInfo.installments)
+                  ? expenseInfo.installments.toString()
+                  : ""
+              }
               onChange={(e) =>
                 setExpenseInfo({
                   ...expenseInfo,

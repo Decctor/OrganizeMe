@@ -28,7 +28,7 @@ function NumberInput({
       </label>
       <input
         readOnly={!editable}
-        value={value ? value.toString() : undefined}
+        value={!isEmpty(value) ? value?.toString() : ""}
         onChange={(e) => handleChange(Number(e.target.value))}
         id={inputIdentifier}
         type="number"
