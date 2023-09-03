@@ -14,13 +14,13 @@ export type monthExpense = monthExpensesOutput[number];
 export type analyticsOutput = RouterOutput["finances"]["getAnalytics"];
 
 export type ExpenseType = {
-  id: string;
+  id?: string;
   description: string;
-  category: string;
-  method: string;
+  category: string | null;
+  method: string | null;
   value: number;
-  purchaseDate: Date;
-  paymentDate: Date;
+  purchaseDate: Date | string | null;
+  paymentDate: Date | string | null;
   installments?: number | null;
   installmentIdentifier?: number | null;
 };

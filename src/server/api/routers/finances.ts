@@ -120,6 +120,45 @@ export const financesRouter = createTRPCRouter({
         });
       }
     }),
+  editExpense: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        description: z.string(),
+        category: z.string(),
+        method: z.string(),
+        value: z.number(),
+        purchaseDate: z.date(),
+        paymentDate: z.date(),
+        installments: z.number().nullable(),
+        userId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await ctx.prisma.expenses.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            description: input.description,
+            category: input.category,
+            method: input.method,
+            value: input.value,
+            purchaseDate: input.purchaseDate,
+            installments: input.installments,
+            paymentDate: input.paymentDate,
+          },
+        });
+        return "Despesa alterado com sucesso!";
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Erro na comunicação com o servidor. Por favor, tente novamente mais tarde.",
+        });
+      }
+    }),
   createManyExpenses: publicProcedure
     .input(
       z.array(

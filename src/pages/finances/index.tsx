@@ -5,7 +5,7 @@ import { MdDelete } from "react-icons/md";
 import { FaEdit } from "react-icons/fa";
 import { RxUpload, RxDownload } from "react-icons/rx";
 import { BiTrendingDown, BiTrendingUp } from "react-icons/bi";
-import { AiFillCaretRight, AiFillCaretLeft } from "react-icons/ai";
+import { AiFillCaretRight, AiFillCaretLeft, AiFillEdit } from "react-icons/ai";
 import FullScreenWrapper from "../../components/wrappers/FullScreenWrapper";
 import Header from "../../components/Header";
 import NewFinancialMove from "~/components/Modals/NewFinancialMove";
@@ -19,6 +19,9 @@ import {
 import { parseCookies } from "nookies";
 import LoadingPage from "~/components/utils/LoadingPage";
 import Link from "next/link";
+import EditExpense from "~/components/Modals/EditExpense";
+import dayjs from "dayjs";
+import { formatDate } from "~/utils/methods/formatting";
 
 type NewFinancialMovementModalProps = {
   state: boolean;
@@ -42,13 +45,7 @@ const monthsTextReference: MonthsTextReferenceType = {
   10: "NOVEMBRO",
   11: "DEZEMBRO",
 };
-function getMonthDiff(d1: Date, d2: Date) {
-  var months;
-  months = (d2.getFullYear() - d1.getFullYear()) * 12;
-  months -= d1.getMonth();
-  months += d2.getMonth();
-  return months <= 0 ? 0 : months;
-}
+
 const dateFilterStartReference = new Date(
   new Date().getFullYear(),
   new Date().getMonth(),
@@ -60,6 +57,14 @@ function FinancesMainPage() {
   const trpc = api.useContext();
 
   const [dateFilter, setDateFilter] = useState(dateFilterStartReference);
+
+  const [editExpenseModal, setEditExpenseModal] = useState<{
+    isOpen: boolean;
+    expense: ExpenseType | null;
+  }>({
+    isOpen: false,
+    expense: null,
+  });
 
   const [newFinancialMovementModalIsOpen, setNewFinancialMovementModalIsOpen] =
     useState<NewFinancialMovementModalProps>({
@@ -424,7 +429,11 @@ function FinancesMainPage() {
                           {expense.category}
                         </h1>
                         <h1 className="break-all text-[0.6rem] text-[##4e4d4a]">
-                          {new Date(expense.purchaseDate).toLocaleDateString()}
+                          {expense.paymentDate
+                            ? dayjs(expense.paymentDate)
+                                .add(3, "hours")
+                                .format("DD/MM/YYYY")
+                            : null}
                         </h1>
                       </div>
                     </div>
@@ -438,6 +447,17 @@ function FinancesMainPage() {
                         <FaEdit />
                       </button> */}
                         <button
+                          onClick={() =>
+                            setEditExpenseModal({
+                              isOpen: true,
+                              expense: expense,
+                            })
+                          }
+                          className="text-xl text-orange-300 duration-300 ease-in-out hover:scale-110 hover:text-orange-500"
+                        >
+                          <AiFillEdit />
+                        </button>
+                        <button
                           onClick={() => deleteExpense(expense.id)}
                           className="text-xl text-red-300 duration-300 ease-in-out hover:scale-110 hover:text-[#ff0054]"
                         >
@@ -450,14 +470,16 @@ function FinancesMainPage() {
             </div>
           </div>
         </div>
-
-        {/* <div
-          onClick={() => setNewFinancialMovementModalIsOpen(true)}
-          className="left-150 text-md fixed bottom-10 cursor-pointer rounded-lg bg-[#2b4e72] p-3 text-white duration-300 ease-in-out hover:scale-110 hover:bg-[#2790b0]"
-        >
-          <IoMdAdd />
-        </div> */}
       </div>
+      {editExpenseModal.isOpen && editExpenseModal.expense ? (
+        <EditExpense
+          closeModal={() =>
+            setEditExpenseModal({ isOpen: false, expense: null })
+          }
+          expense={editExpenseModal.expense as ExpenseType}
+          userId={user?.id || ""}
+        />
+      ) : null}
       {newFinancialMovementModalIsOpen.state && user ? (
         <NewFinancialMove
           user={user}

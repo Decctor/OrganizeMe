@@ -12,13 +12,14 @@ import TextInput from "../Inputs/TextInput";
 import { formatDate } from "~/utils/methods/formatting";
 import SelectInput from "../Inputs/SelectInput";
 import NumberInput from "../Inputs/NumberInput";
+import DateInput from "../Inputs/DateInput";
 type ExpenseType = {
   description: string;
   category: string | null;
   method: string | null;
   value: number;
-  purchaseDate: Date;
-  paymentDate: Date;
+  purchaseDate: Date | string;
+  paymentDate: Date | string;
   installments: null | number;
 };
 type InsertExpenseObj = {
@@ -69,8 +70,8 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
     category: null,
     method: null,
     value: 0,
-    purchaseDate: new Date(),
-    paymentDate: new Date(),
+    purchaseDate: new Date().toISOString(),
+    paymentDate: new Date().toISOString(),
     installments: null,
   });
   const [aditionalInfo, setAditionalInfo] = useState({
@@ -95,11 +96,14 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           });
           toast.success("Gasto adicionado !");
           await trpc.users.getUser.invalidate();
-          await trpc.finances.getMonthExpenses.invalidate();
-          await trpc.finances.getUserFinancialBalance.invalidate();
+          await trpc.finances.getMonthExpenses.cancel();
+          await trpc.finances.getUserFinancialBalance.cancel();
         } catch (error) {
           toast.error("Erro na invalidação de queries.");
         }
+      },
+      onSettled: async () => {
+        await trpc.finances.getMonthExpenses.invalidate();
       },
     });
   const { mutate: createManyExpenses } =
@@ -214,8 +218,11 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
             value: Number(
               (expenseInfo.value / expenseInfo.installments).toFixed(2)
             ),
-            purchaseDate: expenseInfo.purchaseDate,
-            paymentDate: addMonths(expenseInfo.purchaseDate, monthsToAdd),
+            purchaseDate: new Date(expenseInfo.purchaseDate),
+            paymentDate: addMonths(
+              new Date(expenseInfo.purchaseDate),
+              monthsToAdd
+            ),
             installments: expenseInfo.installments,
             installmentIdentifier: i + 1,
             userId: user ? user.id : "",
@@ -230,6 +237,8 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           ...expenseInfo,
           category: expenseInfo.category as string,
           method: expenseInfo.method as string,
+          purchaseDate: new Date(expenseInfo.purchaseDate),
+          paymentDate: new Date(expenseInfo.paymentDate),
           userId: user.id,
         });
       }
@@ -246,7 +255,7 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
       return;
     }
   }
-
+  console.log(expenseInfo);
   return (
     <div className="flex w-full flex-col gap-3 overflow-x-hidden">
       <div className="flex w-full flex-col items-center gap-2 lg:flex-row">
@@ -261,35 +270,26 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           />
         </div>
         <div className="w-full lg:w-[50%]">
-          <div className={`flex w-full flex-col gap-1`}>
-            <label
-              htmlFor={"purchaseDate"}
-              className={
-                "font-Poppins text-sm font-black tracking-tight text-gray-700"
-              }
-            >
-              DATA DE COMPRA
-            </label>
-            <input
-              value={formatDate(expenseInfo.purchaseDate)}
-              onChange={(e) =>
-                setExpenseInfo((prev) => ({
-                  ...prev,
-                  purchaseDate: new Date(e.target.value),
-                }))
-              }
-              onReset={() =>
-                setExpenseInfo((prev) => ({
-                  ...prev,
-                  purchaseDate: new Date(),
-                }))
-              }
-              id={"purchaseDate"}
-              type="date"
-              placeholder={"Preencha aqui a data de compra..."}
-              className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
-            />
-          </div>
+          <DateInput
+            value={
+              expenseInfo.purchaseDate
+                ? formatDate(expenseInfo.purchaseDate)
+                : undefined
+            }
+            showLabel={true}
+            label="DATA DE COMPRA"
+            editable={true}
+            labelClassName="font-Poppins text-sm font-black tracking-tight text-gray-700"
+            handleChange={(value) =>
+              setExpenseInfo((prev) => ({
+                ...prev,
+                purchaseDate: value
+                  ? new Date(value).toISOString()
+                  : new Date().toISOString(),
+              }))
+            }
+            width="100%"
+          />
         </div>
       </div>
       <div className="flex w-full flex-col items-center gap-2 lg:flex-row">
@@ -383,7 +383,27 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
           />
         </div>
         <div className="w-full lg:w-[50%]">
-          <div className={`flex w-full flex-col gap-1`}>
+          <DateInput
+            value={
+              expenseInfo.paymentDate
+                ? formatDate(expenseInfo.paymentDate)
+                : undefined
+            }
+            showLabel={true}
+            label="DATA DE PAGAMENTO"
+            editable={true}
+            labelClassName="font-Poppins text-sm font-black tracking-tight text-gray-700"
+            handleChange={(value) =>
+              setExpenseInfo((prev) => ({
+                ...prev,
+                paymentDate: value
+                  ? new Date(value).toISOString()
+                  : new Date().toISOString(),
+              }))
+            }
+            width="100%"
+          />
+          {/* <div className={`flex w-full flex-col gap-1`}>
             <label
               htmlFor={"paymentDate"}
               className={
@@ -411,7 +431,7 @@ function NewExpense({ user, setUserInfo }: IUserProps & any) {
               placeholder={"Preencha aqui a data de compra..."}
               className="w-full rounded-md border border-gray-200 p-3 text-sm outline-none placeholder:italic"
             />
-          </div>
+          </div> */}
         </div>
       </div>
       <div className="flex w-full flex-col items-center gap-1">
