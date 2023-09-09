@@ -13,6 +13,7 @@ import { formatDate } from "~/utils/methods/formatting";
 import SelectInput from "../Inputs/SelectInput";
 import NumberInput from "../Inputs/NumberInput";
 import DateInput from "../Inputs/DateInput";
+import { isEmpty } from "~/utils/methods/validating";
 type ExpenseType = {
   description: string;
   category: string | null;
